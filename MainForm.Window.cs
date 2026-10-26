@@ -45,7 +45,6 @@ public sealed partial class MainForm
         _s.WindowMaximized = WindowState == FormWindowState.Maximized;
         _s.ColumnWidths = _list.Columns.Cast<ColumnHeader>().Select(c => c.Width).ToArray();
         _s.ColumnLayout = ColumnLayoutKey;
-        if (HasUploader && HasDropPod) _s.OpenOnDropPod = _onDropPod;
         _s.Save();
     }
 
@@ -82,7 +81,7 @@ public sealed partial class MainForm
         try
         {
             SaveWindow(); // so the file holds what the window shows now
-            var n = SettingsTransfer.Export(dlg.FileName, dropPod: true);
+            var n = SettingsTransfer.Export(dlg.FileName);
             Append($"Exported settings and upload history ({n} files) to {dlg.FileName}. It includes any Discord webhook links, so keep it private.", LogKind.Ok);
         }
         catch (Exception e) { MessageBox.Show(this, "Could not export the settings: " + e.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error); }
@@ -112,11 +111,11 @@ public sealed partial class MainForm
         SettingsBackup? picked = null;
         w.DoubleClicked = tag => { picked = tag as SettingsBackup; w.Close(); };
         w.AddButton("&Restore", () => { picked = w.Selected as SettingsBackup; w.Close(); }, needsRow: true, primary: true);
-        w.AddButton("&Open the folder", () => OpenFolder(SettingsBackups.DefaultDir));
+        w.AddButton("&Open the folder", () => OpenPath(SettingsBackups.DefaultDir));
         w.AddClose();
         w.ShowDialog(this);
         if (picked != null)
-            ApplySettingsFile(picked.Path, $"Go back to the settings, upload history and Drop Pod modlists from {picked.Made:d MMMM, HH:mm}? The current ones are kept in a backup folder first.", "Restored");
+            ApplySettingsFile(picked.Path, $"Go back to the settings, and upload history from {picked.Made:d MMMM, HH:mm}? The current ones are kept in a backup folder first.", "Restored");
     }
 
     /// <summary>Reads a settings zip (an export or a daily backup), asks, asks where moved mods folders are, then takes its values.</summary>

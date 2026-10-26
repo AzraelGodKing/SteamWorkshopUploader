@@ -20,11 +20,6 @@ public sealed class AppSettings
     public bool AllowCreate { get; set; }
     /// <summary>"Dark" (the default), "Light" or "System" (follow Windows' app mode).</summary>
     public string Theme { get; set; } = Display.Dark;
-    /// <summary>
-    /// Which sides of the app show: "Both", "Manager" (The Drop Pod only) or "Uploader" (Workshop uploads only). Empty
-    /// until picked on the first start (see <see cref="Display.SidesOnLoad"/>).
-    /// </summary>
-    public string Sides { get; set; } = "";
     /// <summary>Text size in percent (Options > Appearance), on top of Windows' own display scaling.</summary>
     public int TextSize { get; set; } = 100;
     /// <summary>The language of the app's windows, by code ("de"); "" for English. Used from the next start.</summary>
@@ -91,26 +86,10 @@ public sealed class AppSettings
     public List<Profile> Profiles { get; set; } = new();
     /// <summary>RimWorld: warnings from the About.xml check (no author, a dependency without a link, ...) block the upload too.</summary>
     public bool StrictAboutCheck { get; set; }
-    /// <summary>Drop Pod: the player's own load-order rules file (see DropPod.SortRules), or "" for none.</summary>
-    public string DropPodRulesFile { get; set; } = "";
-    /// <summary>The Steam app id of the game The Drop Pod shows (RimWorld 294100, Sun Haven 1432860).</summary>
-    public string DropPodGame { get; set; } = "294100";
-    /// <summary>Drop Pod: the modlist last switched to, by Steam app id.</summary>
-    public Dictionary<string, string> CurrentModlists { get; set; } = new();
-    /// <summary>Drop Pod: a game's install folder chosen by hand, by Steam app id; missing = find it through Steam.</summary>
+    /// <summary>A game's install folder chosen by hand (RimWorld's, for the Launch Pad's RimWorld tools), by Steam app id; missing = find it through Steam.</summary>
     public Dictionary<string, string> GameFolders { get; set; } = new();
-    /// <summary>Drop Pod: a game's config and saves folder chosen by hand, by Steam app id; missing = the game's usual place.</summary>
+    /// <summary>A game's config and saves folder chosen by hand, by Steam app id; missing = the game's usual place.</summary>
     public Dictionary<string, string> GameDataFolders { get; set; } = new();
-    /// <summary>Drop Pod: the Steam collection each modlist was last sent to, by "app id|modlist name" (see DropPod.SteamCollections.Key).</summary>
-    public Dictionary<string, string> SteamCollections { get; set; } = new();
-    /// <summary>Drop Pod: the instance last picked, by Steam app id; missing or "" = the normal game.</summary>
-    public Dictionary<string, string> CurrentInstances { get; set; } = new();
-    /// <summary>Drop Pod: extra arguments for starting the normal game (instances keep their own).</summary>
-    public string DropPodLaunchArgs { get; set; } = "";
-    /// <summary>Drop Pod: width of the details panel beside the mod list; 0 = the default.</summary>
-    public int DropPodDetailsWidth { get; set; }
-    /// <summary>Drop Pod: offer to back up the newest save before starting with mods it wasn't played with.</summary>
-    public bool DropPodSaveBackups { get; set; } = true;
     /// <summary>Discord webhook to announce uploads to, per mods folder. Kept here, not in the repo, because the link is a secret.</summary>
     public Dictionary<string, string> DiscordWebhooks { get; set; } = new();
     /// <summary>Mods folders whose uploads also get a GitHub release (made with the gh tool).</summary>
@@ -133,8 +112,6 @@ public sealed class AppSettings
     public bool SortDescending { get; set; }
     /// <summary>The Options section that was open last.</summary>
     public int OptionsSection { get; set; }
-    /// <summary>With both sides shown: The Drop Pod (not The Launch Pad) was the side open last, so the window opens on it.</summary>
-    public bool OpenOnDropPod { get; set; }
     /// <summary>Named sets of mods (their paths in the repo) to tick in one click, per mods folder.</summary>
     public Dictionary<string, Dictionary<string, List<string>>> ModGroups { get; set; } = new();
     /// <summary>Push the tags "Tag each upload in git" makes to the remote straight away.</summary>
@@ -407,12 +384,9 @@ public sealed class AppSettings
         try
         {
             if (File.Exists(FilePath))
-            {
                 s = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(FilePath)) ?? new AppSettings();
-                s.Sides = Display.SidesOnLoad(true, s.Sides);
-            }
         }
-        catch { s.Sides = Display.Both; /* fall through to defaults; a file that can't be read is not a first start */ }
+        catch { /* fall through to defaults */ }
         return s;
     }
 

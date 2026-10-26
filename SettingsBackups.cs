@@ -6,7 +6,7 @@ namespace SteamCmdHelper;
 public sealed record SettingsBackup(string Path, DateTime Made, long Bytes);
 
 /// <summary>
-/// A copy of the settings, upload history and the Drop Pod's modlists, notes and history, made once a day when
+/// A copy of the settings and upload history, made once a day when
 /// Modwright starts (the newest 14 are kept), so a bad change or a broken file can be undone from Options > About >
 /// Your data. It holds what an export holds (<see cref="SettingsTransfer"/>), so restoring is an import.
 /// </summary>
@@ -41,7 +41,7 @@ public static class SettingsBackups
         Directory.CreateDirectory(dir);
         var path = Path.Combine(dir, $"{Prefix}{at:yyyyMMdd-HHmmss}.zip");
         var tmp = path + ".tmp";
-        SettingsTransfer.Export(tmp, dataFolder, dropPod: true);
+        SettingsTransfer.Export(tmp, dataFolder);
         File.Move(tmp, path, overwrite: true);
         foreach (var old in List(dir).Skip(Keep))
             try { File.Delete(old.Path); } catch (IOException) { }

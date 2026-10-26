@@ -13,21 +13,15 @@ public sealed partial class MainForm
     {
         switch (keyData)
         {
-            case Keys.F5 when _dropPodPage.Visible:
-                _ = ScanDropPodAsync(); return true;
-            case Keys.F5 when !_busy && HasUploader:
+            case Keys.F5 when !_busy:
                 RefreshAll(); return true;
-            case Keys.Control | Keys.O when !_busy && HasUploader:
+            case Keys.Control | Keys.O when !_busy:
                 BrowseRepo(); return true;
-            case Keys.Control | Keys.N when !_busy && HasUploader:
+            case Keys.Control | Keys.N when !_busy:
                 _ = NewModAsync(); return true;
-            case Keys.Control | Keys.F when _dropPodPage.Visible:
-                _dpFilter.Focus(); _dpFilter.SelectAll(); return true;
-            case Keys.Control | Keys.F when HasUploader:
+            case Keys.Control | Keys.F:
                 ShowPage(_uploadPage); _filter.Focus(); _filter.SelectAll(); return true;
-            case Keys.Control | Keys.S when _dropPodPage.Visible && _dpSave.Enabled:
-                SaveDropPodToGame(); return true;
-            case Keys.Control | Keys.Enter when _go.Enabled && HasUploader:
+            case Keys.Control | Keys.Enter when _go.Enabled:
                 _go.PerformClick(); return true;
             case Keys.F1:
                 ShowShortcuts(); return true;
@@ -37,9 +31,8 @@ public sealed partial class MainForm
             case Keys.Control | Keys.Tab:
             case Keys.Control | Keys.Shift | Keys.Tab:
             {
-                // Upload, Drop Pod, Options (those shown), round and round (Shift goes backwards).
-                var order = new (Control Page, NavButton Nav)[] { (_uploadPage, _navUpload), (_dropPodPage, _navDropPod), (_optionsPage, _navOptions) }
-                    .Where(p => p.Nav.Visible).ToArray();
+                // Upload and Options, back and forth.
+                var order = new (Control Page, NavButton Nav)[] { (_uploadPage, _navUpload), (_optionsPage, _navOptions) };
                 var at = Array.FindIndex(order, p => p.Page.Visible);
                 var next = order[(at + ((keyData & Keys.Shift) != 0 ? order.Length - 1 : 1)) % order.Length];
                 ShowPage(next.Page);
@@ -51,12 +44,12 @@ public sealed partial class MainForm
                 ShowSection(NextSection(_section, (keyData & Keys.KeyCode) == Keys.PageUp));
                 _sections[_section].Tab.Focus();
                 return true;
-            case Keys.Escape when _busy && _cts != null && !_filter.Focused && !_dpFilter.Focused:
+            case Keys.Escape when _busy && _cts != null && !_filter.Focused:
                 Append("Stopping after the current step...", LogKind.Warn);
                 Say("Stopping the upload.");
                 Cancel(); return true;
             case Keys.Escape when _optionsPage.Visible && !Focused<ComboBox>(c => c.DroppedDown):
-                ShowPage(_onDropPod ? _dropPodPage : _uploadPage); // back to the side Options was opened from
+                ShowPage(_uploadPage);
                 return true;
         }
         return base.ProcessCmdKey(ref msg, keyData);

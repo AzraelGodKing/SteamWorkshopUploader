@@ -1,11 +1,11 @@
-using SteamCmdHelper.DropPod;
-using SteamCmdHelper.DropPod.RimWorld;
+using SteamCmdHelper.Games;
+using SteamCmdHelper.Games.RimWorld;
 
 namespace SteamCmdHelper;
 
 /// <summary>
 /// Right-click > RimWorld > Edit About.xml: the fields players see, the mods it needs and its load-order rules, with
-/// the Drop Pod's checks shown live as you type. Rules can be picked from the mods The Drop Pod found installed, so
+/// the About.xml checks shown live as you type. Rules can be picked from the mods installed in RimWorld, so
 /// packageIds and Workshop links are right the first time. Fields it doesn't show stay in the file as they were.
 /// </summary>
 public sealed class AboutForm : Form
@@ -29,7 +29,7 @@ public sealed class AboutForm : Form
 
     public AboutFields Result { get; private set; }
 
-    /// <param name="library">The installed mods The Drop Pod knows, for picking rules.</param>
+    /// <param name="library">RimWorld's installed mods, for picking rules.</param>
     public AboutForm(string modName, AboutFields fields, string? xml, Func<List<ModManifest>> library)
     {
         _xml = xml;
@@ -118,7 +118,7 @@ public sealed class AboutForm : Form
         B("Pick from installed mods...", () =>
         {
             var mods = _library();
-            if (mods.Count == 0) { MessageBox.Show(this, "The Drop Pod hasn't found any installed mods yet. Open The Drop Pod once, or add a packageId by hand.", Text); return; }
+            if (mods.Count == 0) { MessageBox.Show(this, "No installed RimWorld mods were found (yet). Try again in a moment, or add a packageId by hand.", Text); return; }
             using var w = new ListWindow("Pick mods", "Tick the installed mods to add.", new[] { ("Mod", 260), ("packageId", 220) }, checkBoxes: true, size: new Size(560, 480));
             foreach (var m in mods.OrderBy(m => m.DisplayName, StringComparer.CurrentCultureIgnoreCase)) w.AddRow(m, Tone.Normal, m.DisplayName, m.Id);
             w.AddButton("&Add", () => { w.DialogResult = DialogResult.OK; w.Close(); }, primary: true);

@@ -1,5 +1,5 @@
-using SteamCmdHelper.DropPod;
-using SteamCmdHelper.DropPod.RimWorld;
+using SteamCmdHelper.Games;
+using SteamCmdHelper.Games.RimWorld;
 
 namespace SteamCmdHelper;
 
@@ -10,7 +10,7 @@ namespace SteamCmdHelper;
 /// </summary>
 public sealed partial class MainForm
 {
-    DevLinks LaunchPadLinks => new(Path.Combine(AppSettings.Folder, "droppod", "devlinks.json"));
+    DevLinks LaunchPadLinks => new(Path.Combine(AppSettings.Folder, "rimworld", "devlinks.json"));
     CleanTestRecord CleanTests => new(Path.Combine(AppSettings.Folder, "launchpad", "clean-tests.json"));
     bool _cleanTesting;
     readonly HashSet<string> _subscriberNoted = new(StringComparer.Ordinal);
@@ -40,13 +40,12 @@ public sealed partial class MainForm
         };
     }
 
-    /// <summary>The Drop Pod's view of RimWorld, scanning it first when the Drop Pod hasn't yet. False (and says why) when RimWorld isn't found.</summary>
+    /// <summary>RimWorld's install and mods, found first when they haven't been yet. False when RimWorld isn't found and no folder is picked.</summary>
     async Task<bool> EnsureRimWorldAsync()
     {
-        if (_dpScan == null || _dpUsual == null) await ScanDropPodAsync();
-        if (_dpScan != null && _dpUsual != null) return true;
-        MessageBox.Show(this, "RimWorld was not found. Open The Drop Pod and pick RimWorld's folder there first.", Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
-        return false;
+        if (_rwScan == null || _rwUsual == null) await ScanRimWorldAsync();
+        if (_rwScan != null && _rwUsual != null) return true;
+        return await PickRimWorldFolderAsync() && _rwUsual != null;
     }
 
     static bool Inside(string path, string folder) =>
@@ -60,10 +59,10 @@ public sealed partial class MainForm
     async Task CleanColonyTestAsync(ModInfo m)
     {
         if (_cleanTesting || !await EnsureRimWorldAsync()) return;
-        var (scan, usual) = (_dpScan!, _dpUsual!);
+        var (scan, usual) = (_rwScan!, _rwUsual!);
         if (GameRunning() != null) { MessageBox.Show(this, "RimWorld is already running. Close it first.", Text, MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
-        if (_dpGame.ReadMod(m.Dir, ModSource.Local) is not { } mod) { Append($"{m.Name}: its About.xml could not be read, so it can't be tested.", LogKind.Error); return; }
-        var (active, missing) = CleanTest.Plan(mod, scan, _dpGame);
+        if (_rwGame.ReadMod(m.Dir, ModSource.Local) is not { } mod) { Append($"{m.Name}: its About.xml could not be read, so it can't be tested.", LogKind.Error); return; }
+        var (active, missing) = CleanTest.Plan(mod, scan, _rwGame);
         if (missing.Count > 0 && MessageBox.Show(this,
                 $"{m.Name} needs {string.Join(", ", missing.Select(d => d.DisplayName ?? d.Id))}, which {(missing.Count == 1 ? "is" : "are")} not installed. Test without {(missing.Count == 1 ? "it" : "them")}?",
                 Text, MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
@@ -74,9 +73,9 @@ public sealed partial class MainForm
         string hash;
         try
         {
-            var store = DropPodInstances;
-            inst = store.Get(_dpGame.AppId, CleanTest.InstanceName) ?? store.Create(_dpGame, usual, CleanTest.InstanceName, "", usual.DataFolder, null);
-            _dpGame.WriteActiveMods(usual with { DataFolder = inst.DataFolder }, active);
+            var store = RimWorldInstances;
+            inst = store.Get(_rwGame.AppId, CleanTest.InstanceName) ?? store.Create(_rwGame, usual, CleanTest.InstanceName, "", usual.DataFolder, null);
+            _rwGame.WriteActiveMods(usual with { DataFolder = inst.DataFolder }, active);
             // The mod has to be where RimWorld looks: its dev folder linked into Mods for the test, unless it is there already.
             if (!Inside(m.Dir, gameMods) && LaunchPadLinks.For(m.Dir) == null) { LaunchPadLinks.Add(gameMods, m.Dir); linked = true; }
             hash = await Task.Run(() => CleanTest.FolderHash(m.Dir));
@@ -86,14 +85,14 @@ public sealed partial class MainForm
             Append($"Could not set up the clean-colony test for {m.Name}: {e.Message}", LogKind.Error);
             return;
         }
-        var install = inst.Apply(usual, _dpGame, SteamLibraries.Find());
-        var psi = Launcher.StartInfo(_dpGame, install, inst, "-quicktest");
+        var install = inst.Apply(usual, _rwGame, SteamLibraries.Find());
+        var psi = Launcher.StartInfo(_rwGame, install, inst, "-quicktest");
         if (psi == null) { Append("RimWorld's program was not found in " + usual.GameFolder + ".", LogKind.Error); if (linked) LaunchPadLinks.Remove(m.Dir); return; }
         try { if (File.Exists(inst.LogFile)) File.Delete(inst.LogFile); } catch (IOException) { }
         _cleanTesting = true;
         try
         {
-            Launcher.Start(psi, _dpGame, install, inst, _ => { try { BeginInvoke(async () => await FinishCleanTestAsync(m, mod, inst, hash, linked, install.Version ?? usual.Version)); } catch (InvalidOperationException) { } });
+            Launcher.Start(psi, _rwGame, install, inst, _ => { try { BeginInvoke(async () => await FinishCleanTestAsync(m, mod, inst, hash, linked, install.Version ?? usual.Version)); } catch (InvalidOperationException) { } });
         }
         catch (Exception e)
         {
@@ -110,7 +109,7 @@ public sealed partial class MainForm
         _cleanTesting = false;
         if (linked) { try { LaunchPadLinks.Remove(m.Dir); } catch (IOException) { } }
         if (!File.Exists(inst.LogFile)) { Append($"The clean-colony test of {m.Name} left no log, so there is nothing to read.", LogKind.Warn); return; }
-        var mods = (_dpScan?.Mods ?? new List<ModManifest>()).Where(x => x.Key != mod.Key).Append(mod).ToList();
+        var mods = (_rwScan?.Mods ?? new List<ModManifest>()).Where(x => x.Key != mod.Key).Append(mod).ToList();
         LogReport report;
         try { report = await Task.Run(() => LogAnalysis.Read(inst.LogFile, new ModIndex(mods, ModAssemblies.ForMods(mods)))); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Append("Could not read the test's log: " + e.Message, LogKind.Error); return; }
@@ -121,7 +120,7 @@ public sealed partial class MainForm
         else
         {
             Append($"{m.Name}'s clean-colony test found {r.Errors} error{(r.Errors == 1 ? "" : "s")} pointing at it: {string.Join("; ", r.Titles.Take(3))}", LogKind.Error);
-            OpenDropPodLog(inst.LogFile, watch: false);
+            OpenRimWorldLog(inst.LogFile, watch: false);
         }
     }
 
@@ -131,11 +130,11 @@ public sealed partial class MainForm
         try
         {
             if (LaunchPadLinks.Remove(m.Dir)) { Append($"{m.Name} is no longer linked into RimWorld's Mods folder.", LogKind.Note); return; }
-            if (_dpUsual == null) { _ = PlayLiveAfterScanAsync(m); return; }
-            var mods = Launcher.ModsFolder(_dpUsual);
+            if (_rwUsual == null) { _ = PlayLiveAfterScanAsync(m); return; }
+            var mods = Launcher.ModsFolder(_rwUsual);
             if (Inside(m.Dir, mods)) { Append($"{m.Name} already lives in RimWorld's Mods folder, so the game sees every change already.", LogKind.Note); return; }
             var l = LaunchPadLinks.Add(mods, m.Dir);
-            Append($"{m.Name} is linked into RimWorld as {l.Link}: each build is in the game at once. Tick it in The Drop Pod to play it. Right-click > RimWorld > Stop playing it live takes the link out (your folder stays).", LogKind.Ok);
+            Append($"{m.Name} is linked into RimWorld as {l.Link}: each build is in the game at once. Turn it on in the game's Mods menu to play it. Right-click > RimWorld > Stop playing it live takes the link out (your folder stays).", LogKind.Ok);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException)
         {
@@ -173,9 +172,9 @@ public sealed partial class MainForm
         try { text = await PlayerLog.TextAsync(t.Text); }
         catch (IOException e) { MessageBox.Show(this, e.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
         var cfg = _cfg;
-        var own = await Task.Run(() => _mods.Select(m => _dpGame.ReadMod(m.Dir, ModSource.Local)).OfType<ModManifest>().ToList());
+        var own = await Task.Run(() => _mods.Select(m => _rwGame.ReadMod(m.Dir, ModSource.Local)).OfType<ModManifest>().ToList());
         var mine = new HashSet<string>(own.Select(m => m.Key), StringComparer.Ordinal);
-        var known = own.Concat((_dpScan?.Mods ?? new List<ModManifest>()).Where(m => !mine.Contains(m.Key))).ToList();
+        var known = own.Concat((_rwScan?.Mods ?? new List<ModManifest>()).Where(m => !mine.Contains(m.Key))).ToList();
         var report = await Task.Run(() => LogAnalysis.Read(new StringReader(text), new ModIndex(known, ModAssemblies.ForMods(own))));
         var issues = PlayerLog.Mine(report, mine);
         var list = PlayerLog.ModList(text);
@@ -195,7 +194,7 @@ public sealed partial class MainForm
         w.Show(this);
     }
 
-    /// <summary>Right-click > RimWorld > Edit About.xml: the common fields with live checks, and rules picked from the Drop Pod's library.</summary>
+    /// <summary>Right-click > RimWorld > Edit About.xml: the common fields with live checks, and rules picked from RimWorld's installed mods.</summary>
     void EditAboutXml(ModInfo m)
     {
         var path = Path.Combine(m.Dir, "About", "About.xml");
@@ -205,7 +204,8 @@ public sealed partial class MainForm
         AboutFields fields;
         try { fields = xml == null ? new AboutFields { Name = m.Name } : AboutEditor.Read(xml); }
         catch (Exception e) { Append("About.xml could not be read: " + e.Message, LogKind.Error); return; }
-        using var f = new AboutForm(m.Name, fields, xml, () => _dpScan?.Mods.Where(x => x.Id.Length > 0).DistinctBy(x => x.Key).ToList() ?? new List<ModManifest>());
+        if (_rwScan == null) _ = ScanRimWorldAsync(); // for "Pick from installed mods", read while the form is open
+        using var f = new AboutForm(m.Name, fields, xml, () => _rwScan?.Mods.Where(x => x.Id.Length > 0).DistinctBy(x => x.Key).ToList() ?? new List<ModManifest>());
         if (f.ShowDialog(this) != DialogResult.OK) return;
         try
         {
@@ -220,10 +220,10 @@ public sealed partial class MainForm
     /// <summary>Right-click > RimWorld > Compatibility grid: each mod's clean-colony result per game version it supports.</summary>
     void ShowCompatibilityGrid()
     {
-        var own = _mods.Select(m => (Info: m, Mod: _dpGame.ReadMod(m.Dir, ModSource.Local))).Where(x => x.Mod != null).ToList();
+        var own = _mods.Select(m => (Info: m, Mod: _rwGame.ReadMod(m.Dir, ModSource.Local))).Where(x => x.Mod != null).ToList();
         var versions = own.SelectMany(x => x.Mod!.SupportedVersions).Select(GameVersion.Short).Where(v => v.Length > 0).Distinct()
             .OrderBy(v => Version.TryParse(v, out var p) ? p : new Version(0, 0)).ToList();
-        var installed = _dpScan?.Install.Version is { } iv ? GameVersion.Short(iv) : null;
+        var installed = _rwScan?.Install.Version is { } iv ? GameVersion.Short(iv) : null;
         var cols = new List<(string, int)> { ("Mod", 200) };
         cols.AddRange(versions.Select(v => (v + (v == installed ? " (installed)" : ""), 110)));
         var rec = CleanTests;
@@ -323,8 +323,8 @@ public sealed partial class MainForm
                 .Select(x => (x.m, w: CleanTest.Warning(x.last, CleanTest.FolderHash(x.m.Dir)))).ToList());
             lines.AddRange(found.Where(x => x.w != null).Select(x => $"{x.m.Name} {x.w}."));
             // Patches are checked against the game's own XML, so only when RimWorld is found (quietly skipped otherwise).
-            if (_dpScan == null && _dpUsual == null) await ScanDropPodAsync();
-            if (_dpScan is { } scan)
+            if (_rwScan == null && _rwUsual == null) await ScanRimWorldAsync();
+            if (_rwScan is { } scan)
                 lines.AddRange(await Task.Run(() => picked.SelectMany(m => PatchMisses(m, scan)).ToList()));
         }
         if (!test && RepoIsGit)
@@ -343,9 +343,9 @@ public sealed partial class MainForm
     /// </summary>
     IEnumerable<string> PatchMisses(ModInfo m, LibraryScan scan)
     {
-        if (_dpGame.ReadMod(m.Dir, ModSource.Local) is not { } mod) return Enumerable.Empty<string>();
+        if (_rwGame.ReadMod(m.Dir, ModSource.Local) is not { } mod) return Enumerable.Empty<string>();
         var byId = scan.ById();
-        var (active, _) = CleanTest.Plan(mod, scan, _dpGame);
+        var (active, _) = CleanTest.Plan(mod, scan, _rwGame);
         var mods = active.Select(k => k == mod.Key ? mod : byId.GetValueOrDefault(k)).OfType<ModManifest>().ToList();
         var lines = new List<string>();
         foreach (var f in XmlPatchSim.Run(XmlMods(mods), scan.Install.Version).Where(f => f.Mods.Contains(mod.Key)))
@@ -383,7 +383,7 @@ public sealed partial class MainForm
             {
                 if (cache.TryGetValue(m.Dir, out var hit)) return hit;
                 (string?, List<string>) r;
-                if (RimWorldLint.Applies(cfg) && _dpGame.ReadMod(m.Dir, ModSource.Local) is { } man)
+                if (RimWorldLint.Applies(cfg) && _rwGame.ReadMod(m.Dir, ModSource.Local) is { } man)
                     r = (man.Id.Length > 0 ? man.Id : null, man.Dependencies.Everything.Select(d => d.Id).Where(i => i.Length > 0).ToList());
                 else r = (m.WorkshopId, Dependencies.Find(m, cfg));
                 return cache[m.Dir] = r;

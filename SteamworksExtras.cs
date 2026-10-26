@@ -66,7 +66,7 @@ static class SteamworksExtras
                     result.Subscribed.Add(a);
                     item.Download(highPriority: true);
                 }
-            // The Steam client downloads in the background; wait a while so the Drop Pod can tick them straight away.
+            // The Steam client downloads in the background; wait a while so they are there to use straight away.
             var until = DateTime.UtcNow.AddSeconds(req.WaitSeconds);
             while (true)
             {

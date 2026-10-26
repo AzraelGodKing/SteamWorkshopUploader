@@ -1,10 +1,10 @@
-using SteamCmdHelper.DropPod;
+using SteamCmdHelper.Games;
 
 namespace SteamCmdHelper;
 
 /// <summary>
-/// Drop Pod > Read the log (and Test): the game's log with its errors and warnings grouped, the mods most likely at
-/// fault, and a way to untick them. While watching, it reads the log again whenever the game writes to it.
+/// RimWorld's log after a clean-colony test: its errors and warnings grouped and the mods most likely at fault. While
+/// watching, it reads the log again whenever the game writes to it.
 /// </summary>
 public sealed class LogForm : Form
 {
@@ -12,31 +12,27 @@ public sealed class LogForm : Form
     readonly TextBox _details = new() { Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Both, WordWrap = false, Dock = DockStyle.Fill, Font = new Font(FontFamily.GenericMonospace, 9f), AccessibleName = "The selected message in full" };
     readonly Label _summary = new() { AutoSize = true, UseMnemonic = false, Margin = new Padding(0, 0, 0, 6) };
     readonly CheckBox _errorsOnly = new() { Text = "&Errors only", AutoSize = true };
-    readonly Button _untick = new() { Text = "&Untick the mod at fault", AutoSize = true, Enabled = false };
     readonly Button _reportBtn = new() { Text = "Report to the &author", AutoSize = true, Enabled = false };
     readonly Func<LogIssue, (string? Url, string Body)?>? _reportOf;
     readonly System.Windows.Forms.Timer _watch = new() { Interval = 3000 };
     readonly string _path;
     readonly Func<string, CancellationToken, LogReport> _read;
     readonly Func<string, string> _name;
-    readonly Action<string> _untickMod;
     LogReport? _report;
     (long Length, DateTime Written) _seen;
     bool _reading;
 
     /// <param name="read">Reads and analyses the log (runs in the background).</param>
     /// <param name="name">A mod key's display name.</param>
-    /// <param name="untick">Unticks a mod in the Drop Pod's list.</param>
     /// <param name="watch">Keep reading the log as the game writes it.</param>
     /// <param name="report">For a problem: where to report it to the author of the mod at fault, and the text; null hides the button.</param>
-    public LogForm(string path, Func<string, CancellationToken, LogReport> read, Func<string, string> name, Action<string> untick, bool watch,
+    public LogForm(string path, Func<string, CancellationToken, LogReport> read, Func<string, string> name, bool watch,
         Func<LogIssue, (string? Url, string Body)?>? report = null)
     {
         _reportOf = report;
         _path = path;
         _read = read;
         _name = name;
-        _untickMod = untick;
         Text = "Game log: " + Path.GetFileName(path);
         Font = Theme.BodyFont;
         StartPosition = FormStartPosition.CenterParent;
@@ -54,7 +50,7 @@ public sealed class LogForm : Form
         var top = new FlowLayoutPanel { AutoSize = true, Dock = DockStyle.Fill, WrapContents = false, Margin = Padding.Empty };
         top.Controls.Add(_summary);
         var buttons = new FlowLayoutPanel { AutoSize = true, Dock = DockStyle.Fill, Margin = new Padding(0, 8, 0, 0) };
-        foreach (var c in new Control[] { _errorsOnly, again, open, copy, _untick, _reportBtn, close }) buttons.Controls.Add(c);
+        foreach (var c in new Control[] { _errorsOnly, again, open, copy, _reportBtn, close }) buttons.Controls.Add(c);
         _reportBtn.Visible = report != null;
         var split = new SplitContainer { Dock = DockStyle.Fill, Orientation = Orientation.Horizontal, SplitterDistance = 300 };
         split.Panel1.Controls.Add(_list);
@@ -75,13 +71,6 @@ public sealed class LogForm : Form
         again.Click += async (_, _) => await ReadAsync(force: true);
         open.Click += (_, _) => { try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(_path) { UseShellExecute = true }); } catch { } };
         copy.Click += (_, _) => { if (_report != null) try { Clipboard.SetText(ReportText(_report)); } catch { } };
-        _untick.Click += (_, _) =>
-        {
-            if (Selected()?.Mods.FirstOrDefault() is not { } b) return;
-            _untickMod(b.Mod);
-            _untick.Enabled = false;
-            _summary.Text = $"Unticked {_name(b.Mod)}. Press Save to game in the Drop Pod, then test again.";
-        };
         _reportBtn.Click += (_, _) =>
         {
             if (Selected() is not { } i || _reportOf?.Invoke(i) is not { } r) return;
@@ -155,7 +144,6 @@ public sealed class LogForm : Form
     void ShowSelected()
     {
         var i = Selected();
-        _untick.Enabled = i?.Mods.Count > 0;
         _reportBtn.Enabled = i?.Mods.Count > 0;
         if (i == null) { _details.Text = ""; return; }
         var head = i.Mods.Count == 0 ? "No mod could be pinned on this one." : string.Join(Environment.NewLine, i.Mods.Select(b => $"{_name(b.Mod)}: {Why[b.Why]}"));

@@ -9,11 +9,11 @@ public sealed class ShortcutsForm : Form
         ("Ctrl+K", "Find any action by name and run it (also Ctrl+Shift+P)"),
         ("Alt + underlined letter", "Press that button, or go to the box whose label has the letter underlined"),
         ("Alt+U, Alt+O", "Go to The Launch Pad or Options"),
-        ("Ctrl+Tab", "Switch between The Launch Pad, The Drop Pod and Options (Ctrl+Shift+Tab goes back)"),
-        ("Esc in Options", "Go back to The Launch Pad or The Drop Pod, wherever you came from"),
+        ("Ctrl+Tab", "Switch between The Launch Pad and Options"),
+        ("Esc in Options", "Go back to The Launch Pad"),
         ("Ctrl+PageDown, Ctrl+PageUp", "Next or previous Options section (Up and Down in the section list too)"),
-        ("Ctrl+F", "Filter the mod list on either side (Esc clears the filter)"),
-        ("F5", "Read the mods folder again (in The Drop Pod: the installed mods)"),
+        ("Ctrl+F", "Filter the mod list (Esc clears the filter)"),
+        ("F5", "Read the mods folder again"),
         ("Ctrl+O", "Pick the mods folder"),
         ("Ctrl+N", "Make a new mod folder"),
         ("Space", "Tick or untick the selected mod"),
@@ -22,9 +22,6 @@ public sealed class ShortcutsForm : Form
         ("Shift+F10", "More for the selected mod: changelog, history, package preview, Steam page"),
         ("Ctrl+Enter", "Upload the ticked mods"),
         ("Esc", "Stop a running upload"),
-        ("Alt+Up, Alt+Down", "The Drop Pod: load the selected mod earlier or later"),
-        ("Ctrl+Z, Ctrl+Y", "The Drop Pod: undo or redo a change to the mod list"),
-        ("Ctrl+S", "The Drop Pod: save the mod list to the game"),
     };
 
     public ShortcutsForm()

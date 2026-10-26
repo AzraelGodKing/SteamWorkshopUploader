@@ -3,7 +3,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Xml;
 using System.Xml.Linq;
-using SteamCmdHelper.DropPod.RimWorld;
+using SteamCmdHelper.Games.RimWorld;
 
 namespace SteamCmdHelper;
 
