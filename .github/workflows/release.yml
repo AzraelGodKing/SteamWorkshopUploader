@@ -1,7 +1,7 @@
 name: Release
 
 # Push a tag like v1.2.0 (or run "Promote test and release", which pushes one) to build and publish a GitHub Release.
-# The tag must match <Version> in SteamCmdHelper.csproj and have a "## 1.2.0" section in CHANGELOG.md.
+# The tag must match <Version> in SteamWorkshopUploader.csproj and have a "## 1.2.0" section in CHANGELOG.md.
 on:
   push:
     tags: ['v[0-9]+.[0-9]+.[0-9]+*']
@@ -33,9 +33,9 @@ jobs:
       - name: Check version and read release notes
         run: |
           version="${GITHUB_REF_NAME#v}"
-          csproj=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' SteamCmdHelper.csproj)
+          csproj=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' SteamWorkshopUploader.csproj)
           if [ "$version" != "$csproj" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match <Version>$csproj</Version> in SteamCmdHelper.csproj"
+            echo "::error::Tag $GITHUB_REF_NAME does not match <Version>$csproj</Version> in SteamWorkshopUploader.csproj"
             exit 1
           fi
           # CHANGELOG.md wraps long items onto indented lines; GitHub shows every line break in release notes, so those
@@ -75,14 +75,14 @@ jobs:
           # Self-contained single exe: runs without .NET installed. Not compressed: a compressed exe is under half the
           # size, but unpacks the whole .NET runtime into memory on every start, which made opening the app slow.
           # ReadyToRun compiles the app ahead of time so its windows are not compiled at start-up either.
-          dotnet publish SteamCmdHelper.csproj -c Release -r win-x64 --self-contained \
+          dotnet publish SteamWorkshopUploader.csproj -c Release -r win-x64 --self-contained \
             -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishReadyToRun=true -o out/standalone
           # Framework-dependent folder: small, for machines with the .NET 8 Desktop Runtime
           # or where antivirus refuses large unsigned single-file exes.
-          dotnet publish SteamCmdHelper.csproj -c Release -r win-x64 --no-self-contained -p:PublishReadyToRun=true -o out/portable
+          dotnet publish SteamWorkshopUploader.csproj -c Release -r win-x64 --no-self-contained -p:PublishReadyToRun=true -o out/portable
           # Self-contained folder for the Setup.exe (Velopack, see AppUpdates.cs). A folder rather than one file: Velopack's
           # Update.exe swaps whole folders, and updates between versions only download the files that changed.
-          dotnet publish SteamCmdHelper.csproj -c Release -r win-x64 --self-contained -p:PublishReadyToRun=true -o out/velopack
+          dotnet publish SteamWorkshopUploader.csproj -c Release -r win-x64 --self-contained -p:PublishReadyToRun=true -o out/velopack
 
       # Code signing through SignPath (free for open source; see "Code signing (maintainer)" in the README). Until the
       # SIGNPATH_API_TOKEN secret exists these steps are skipped and the release is unsigned, as before. Signing
@@ -94,7 +94,7 @@ jobs:
         with:
           name: unsigned
           path: |
-            out/standalone/SteamCmdHelper.exe
+            out/standalone/SteamWorkshopUploader.exe
             out/portable
 
       - name: Sign with SignPath
@@ -103,7 +103,7 @@ jobs:
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
-          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG || 'SteamCMDHelper' }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG || 'SteamWorkshopUploader' }}
           signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG || 'release-signing' }}
           github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}
           # Checked against each file's product version (packaging/signpath/artifact-configuration.xml).
@@ -129,8 +129,8 @@ jobs:
           dotnet tool install -g vpk --version 1.2.161
           vpk download github --repoUrl "https://github.com/$GITHUB_REPOSITORY" --token "$GH_TOKEN" -o out/vpk \
             || echo "No earlier Velopack release to make a delta from."
-          vpk pack --packId AzraelGodKing.SteamCMDHelper --packVersion "$VERSION" --packDir out/velopack \
-            --mainExe SteamCmdHelper.exe --packTitle "SteamCMD Helper" --packAuthors AzraelGodKing --icon Assets/app.ico \
+          vpk pack --packId AzraelGodKing.SteamWorkshopUploader --packVersion "$VERSION" --packDir out/velopack \
+            --mainExe SteamWorkshopUploader.exe --packTitle "Steam Workshop Uploader" --packAuthors AzraelGodKing --icon Assets/app.ico \
             --noPortable -o out/vpk
           ls -l out/vpk
 
@@ -138,10 +138,10 @@ jobs:
         run: |
           mkdir dist
           # Velopack finds its packages by these exact names, so only the Setup.exe is renamed.
-          cp out/vpk/AzraelGodKing.SteamCMDHelper-win-Setup.exe "dist/SteamCmdHelper-$VERSION-Setup.exe"
-          cp out/vpk/AzraelGodKing.SteamCMDHelper-"$VERSION"-*.nupkg out/vpk/releases.win.json out/vpk/assets.win.json out/vpk/RELEASES dist/
-          cp out/standalone/SteamCmdHelper.exe "dist/SteamCmdHelper-$VERSION-win-x64.exe"
-          (cd out/portable && 7z a -tzip "../../dist/SteamCmdHelper-$VERSION-win-x64-framework-dependent.zip" . > /dev/null)
+          cp out/vpk/AzraelGodKing.SteamWorkshopUploader-win-Setup.exe "dist/SteamWorkshopUploader-$VERSION-Setup.exe"
+          cp out/vpk/AzraelGodKing.SteamWorkshopUploader-"$VERSION"-*.nupkg out/vpk/releases.win.json out/vpk/assets.win.json out/vpk/RELEASES dist/
+          cp out/standalone/SteamWorkshopUploader.exe "dist/SteamWorkshopUploader-$VERSION-win-x64.exe"
+          (cd out/portable && 7z a -tzip "../../dist/SteamWorkshopUploader-$VERSION-win-x64-framework-dependent.zip" . > /dev/null)
           (cd dist && sha256sum * > SHA256SUMS.txt)
           ls -l dist
 
@@ -151,7 +151,7 @@ jobs:
         run: |
           prerelease=""
           case "$VERSION" in *-*) prerelease="--prerelease" ;; esac
-          gh release create "$GITHUB_REF_NAME" dist/* --title "SteamCMD Helper $VERSION" --notes-file notes.md $prerelease
+          gh release create "$GITHUB_REF_NAME" dist/* --title "Steam Workshop Uploader $VERSION" --notes-file notes.md $prerelease
 
   # After a release: point the Scoop manifest in bucket/ at it (as a pull request), and send the new version to winget
   # once the package is in winget-pkgs and a WINGET_TOKEN secret is set. Neither can fail the release.
@@ -179,13 +179,13 @@ jobs:
           $base = "https://github.com/${{ github.repository }}/releases/download/v$version"
           # The download is served as application/octet-stream, so Content is bytes, not text.
           $sums = [Text.Encoding]::UTF8.GetString((Invoke-WebRequest "$base/SHA256SUMS.txt").RawContentStream.ToArray())
-          $exe = "SteamCmdHelper-$version-win-x64.exe"
+          $exe = "SteamWorkshopUploader-$version-win-x64.exe"
           $hash = ($sums -split "`n" | Where-Object { $_ -match [regex]::Escape($exe) } | ForEach-Object { ($_ -split '\s+')[0] } | Select-Object -First 1)
           if (-not $hash) { throw "SHA256SUMS.txt has no line for $exe" }
-          $file = 'bucket/steamcmdhelper.json'
+          $file = 'bucket/steamworkshopuploader.json'
           $m = Get-Content $file -Raw | ConvertFrom-Json
           $m.version = $version
-          $m.architecture.'64bit'.url = "$base/$exe#/SteamCmdHelper.exe"
+          $m.architecture.'64bit'.url = "$base/$exe#/SteamWorkshopUploader.exe"
           $m.architecture.'64bit'.hash = $hash.ToLower()
           ($m | ConvertTo-Json -Depth 10) + "`n" | Set-Content $file -NoNewline -Encoding utf8NoBOM
           git config user.name 'github-actions[bot]'
@@ -194,7 +194,7 @@ jobs:
           git checkout -b $branch
           git commit -am "Point the Scoop manifest at $version"
           git push origin $branch
-          gh pr create --base main --head $branch --title "Point the Scoop manifest at $version" --body "Updates bucket/steamcmdhelper.json to the $version release (URL and SHA-256 from its SHA256SUMS.txt)."
+          gh pr create --base main --head $branch --title "Point the Scoop manifest at $version" --body "Updates bucket/steamworkshopuploader.json to the $version release (URL and SHA-256 from its SHA256SUMS.txt)."
 
       - name: winget
         continue-on-error: true
@@ -203,6 +203,6 @@ jobs:
         run: |
           if (-not $env:WINGET_TOKEN) { Write-Output "No WINGET_TOKEN secret: winget is not updated (see Install with winget or Scoop in the README)."; exit 0 }
           $version = '${{ github.ref_name }}'.TrimStart('v')
-          $url = "https://github.com/${{ github.repository }}/releases/download/v$version/SteamCmdHelper-$version-win-x64.exe"
+          $url = "https://github.com/${{ github.repository }}/releases/download/v$version/SteamWorkshopUploader-$version-win-x64.exe"
           Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
-          ./wingetcreate.exe update AzraelGodKing.SteamCMDHelper --version $version --urls $url --submit --token $env:WINGET_TOKEN
+          ./wingetcreate.exe update AzraelGodKing.SteamWorkshopUploader --version $version --urls $url --submit --token $env:WINGET_TOKEN

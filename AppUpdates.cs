@@ -18,10 +18,10 @@ public sealed record PendingUpdate(string Version, Action<string, bool> Install)
 public static class AppUpdates
 {
     /// <summary>
-    /// The Velopack package id. Setup installs to %LocalAppData%\&lt;id&gt;, so it must not be "SteamCmdHelper", the
+    /// The Velopack package id. Setup installs to %LocalAppData%\&lt;id&gt;, so it must not be "SteamWorkshopUploader", the
     /// settings folder.
     /// </summary>
-    public const string PackId = "AzraelGodKing.SteamCMDHelper";
+    public const string PackId = "AzraelGodKing.SteamWorkshopUploader";
 
     static readonly Lazy<UpdateManager?> Manager = new(() =>
     {

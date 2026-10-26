@@ -6,7 +6,7 @@ namespace SteamCmdHelper;
 
 /// <summary>
 /// Sets one Workshop item's tags through the Steam client, in a child process started by
-/// <see cref="WorkshopTags.UpdateOnSteamAsync"/> ("SteamCmdHelper.exe --steam-set-tags appid id tag..."). The process
+/// <see cref="WorkshopTags.UpdateOnSteamAsync"/> ("SteamWorkshopUploader.exe --steam-set-tags appid id tag..."). The process
 /// tells Steam it is the game (the same way the game's own uploader works), reads the item's current tags, and sends
 /// only a tag change: files, title, description and visibility stay as they are.
 /// </summary>

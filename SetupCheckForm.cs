@@ -29,7 +29,7 @@ public sealed class SetupCheckForm : Form
         }
 
         var intro = new Label { Text = Doctor.Summary(checks.ToList()), AutoSize = true, Font = new Font(Theme.BodyFont, FontStyle.Bold), Margin = new Padding(0, 0, 0, 8) };
-        var note = new Label { Text = "Nothing was changed. The same check runs from the command line: SteamCmdHelper doctor (add --login to really log in).", AutoSize = true, MaximumSize = new Size(640, 0), Margin = new Padding(0, 8, 0, 0) }.Role(ThemeRole.Muted);
+        var note = new Label { Text = "Nothing was changed. The same check runs from the command line: SteamWorkshopUploader doctor (add --login to really log in).", AutoSize = true, MaximumSize = new Size(640, 0), Margin = new Padding(0, 8, 0, 0) }.Role(ThemeRole.Muted);
         var close = new Button { Text = "Close", AutoSize = true, DialogResult = DialogResult.OK, Padding = new Padding(14, 2, 14, 2), Anchor = AnchorStyles.Right, Margin = new Padding(0, 12, 0, 0) }.Role(ThemeRole.Accent);
         var root = new TableLayoutPanel { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, ColumnCount = 1, Location = new Point(16, 12), Padding = new Padding(0, 0, 16, 12) };
         root.Controls.Add(intro);

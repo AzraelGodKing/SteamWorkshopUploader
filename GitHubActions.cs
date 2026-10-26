@@ -12,13 +12,13 @@ public static class GitHubActions
     public const string LoginSecretName = "STEAM_CONFIG_VDF";
 
     public const string Workflow = """
-        # Uploads this repo's mods to the Steam Workshop with Modwright when a tag starting with "v" is pushed,
+        # Uploads this repo's mods to the Steam Workshop with Steam Workshop Uploader when a tag starting with "v" is pushed,
         # or when started by hand from the Actions tab. Only mods whose version Steam does not have yet are uploaded.
-        # Written by Modwright (ci-setup).
+        # Written by Steam Workshop Uploader (ci-setup).
         #
         # It needs two repository secrets (Settings > Secrets and variables > Actions):
         #   STEAM_ACCOUNT     the Steam login name that owns the mods
-        #   STEAM_CONFIG_VDF  SteamCMD's saved login: run "SteamCmdHelper login-secret" (or Options > Git & GitHub > Copy login
+        #   STEAM_CONFIG_VDF  SteamCMD's saved login: run "SteamWorkshopUploader login-secret" (or Options > Git & GitHub > Copy login
         #                     secret) on the PC where you logged in, and paste what it gives you
         # Anyone who can push workflow changes to this repo can use that login, so keep the repo's write access tight.
         # A saved login expires now and then. When uploads fail with a login error, log in again in the app and update
@@ -46,10 +46,10 @@ public static class GitHubActions
             steps:
               - uses: actions/checkout@v4
 
-              - name: Get Modwright
+              - name: Get Steam Workshop Uploader
                 env:
                   GH_TOKEN: ${{ github.token }}
-                run: gh release download --repo AzraelGodKing/SteamCMDHelper --pattern "*-win-x64.exe" --output "$env:RUNNER_TEMP\SteamCmdHelper.exe"
+                run: gh release download --repo AzraelGodKing/SteamWorkshopUploader --pattern "*-win-x64.exe" --output "$env:RUNNER_TEMP\SteamWorkshopUploader.exe"
 
               - name: Get SteamCMD
                 run: |
@@ -77,7 +77,7 @@ public static class GitHubActions
                   $a = @('upload', '--changed', '--repo', '.', '--account', $env:STEAM_ACCOUNT, '--steamcmd', "$env:RUNNER_TEMP\steamcmd\steamcmd.exe")
                   if ($env:DRY_RUN -eq 'true') { $a += '--dry-run' }
                   # Piping makes PowerShell wait for the program and show its output.
-                  & "$env:RUNNER_TEMP\SteamCmdHelper.exe" @a | Out-Host
+                  & "$env:RUNNER_TEMP\SteamWorkshopUploader.exe" @a | Out-Host
                   exit $LASTEXITCODE
 
               - name: Remove the saved login
@@ -90,7 +90,7 @@ public static class GitHubActions
         Next steps:
           1. In the repo on GitHub, open Settings > Secrets and variables > Actions and add two repository secrets:
              {AccountSecret}     your Steam login name
-             {LoginSecretName}  SteamCMD's saved login (SteamCmdHelper login-secret, or Options > Git & GitHub > Copy login secret)
+             {LoginSecretName}  SteamCMD's saved login (SteamWorkshopUploader login-secret, or Options > Git & GitHub > Copy login secret)
           2. Commit and push {WorkflowPath}.
           3. Push a tag starting with v (git tag v1.2.0, then git push --tags), or start it from the Actions tab.
         """;

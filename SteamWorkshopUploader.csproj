@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>SteamCmdHelper</RootNamespace>
+    <AssemblyName>SteamWorkshopUploader</AssemblyName>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <Version>2.0.0</Version>
+    <Product>Steam Workshop Uploader</Product>
+    <Description>One-click Steam Workshop uploads for any game's mods, with login handling and progress.</Description>
+    <Copyright>Copyright (c) 2026 Azrael</Copyright>
+    <!-- Keep the exe's product version to the plain version (no "+commit"): SignPath only signs files whose product
+         name and version match what the release asks for (packaging/signpath/artifact-configuration.xml). -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <!-- The test project lives inside this folder; keep its sources out of the app. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Installs and updates the app the way most desktop apps do (a separate Update.exe swaps versions); see AppUpdates.cs. -->
+    <PackageReference Include="Velopack" Version="1.2.161" />
+    <!-- Sets Workshop tags, which SteamCMD cannot (see SteamworksTags.cs). Its steam_api64.dll is embedded below. -->
+    <PackageReference Include="Facepunch.Steamworks" Version="2.3.3" GeneratePathProperty="true" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The same icon for every window (Theme.AppIcon); ApplicationIcon above is the exe's own icon. -->
+    <EmbeddedResource Include="Assets\app.ico" LogicalName="SteamCmdHelper.app.ico" />
+    <EmbeddedResource Include="CHANGELOG.md" LogicalName="SteamCmdHelper.CHANGELOG.md" />
+    <EmbeddedResource Include="Languages\*.json" LogicalName="SteamCmdHelper.Languages.%(Filename).json" />
+    <!-- Valve's Steamworks library, written out next to the settings when tags are set, so every build (single file,
+         portable, installer) has it without a loose file to ship. -->
+    <EmbeddedResource Include="$(PkgFacepunch_Steamworks)\content\steam_api64.dll" LogicalName="SteamCmdHelper.steam_api64.dll" />
+  </ItemGroup>
+  <!-- Bakes the Linear request key in when one is available at build time; see RequestKey.targets. -->
+  <Import Project="RequestKey.targets" />
+</Project>

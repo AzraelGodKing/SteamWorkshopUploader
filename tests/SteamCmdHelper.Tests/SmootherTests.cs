@@ -79,11 +79,4 @@ public sealed class SmootherTests : IDisposable
         Assert.Equal(64, shown.Width); // still drawable: it was on screen, so it was not disposed
     }
 
-    [Fact]
-    public void The_side_opened_last_survives_a_save_and_load_round_trip()
-    {
-        var json = System.Text.Json.JsonSerializer.Serialize(new AppSettings { OpenOnDropPod = true });
-        Assert.True(System.Text.Json.JsonSerializer.Deserialize<AppSettings>(json)!.OpenOnDropPod);
-        Assert.False(new AppSettings().OpenOnDropPod); // a fresh install opens on The Launch Pad
-    }
 }

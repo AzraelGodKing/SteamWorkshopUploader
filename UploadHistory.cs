@@ -16,7 +16,7 @@ public sealed record UploadEntry(
 
 /// <summary>
 /// A log of every upload made from this PC: when, which version and the change note sent. Kept in
-/// %LocalAppData%\SteamCmdHelper\history.json, newest last, trimmed to the most recent <see cref="Keep"/> entries.
+/// %LocalAppData%\SteamWorkshopUploader\history.json, newest last, trimmed to the most recent <see cref="Keep"/> entries.
 /// </summary>
 public static class UploadHistory
 {

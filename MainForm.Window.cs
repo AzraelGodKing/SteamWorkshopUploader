@@ -45,7 +45,6 @@ public sealed partial class MainForm
         _s.WindowMaximized = WindowState == FormWindowState.Maximized;
         _s.ColumnWidths = _list.Columns.Cast<ColumnHeader>().Select(c => c.Width).ToArray();
         _s.ColumnLayout = ColumnLayoutKey;
-        if (HasUploader && HasDropPod) _s.OpenOnDropPod = _onDropPod;
         _s.Save();
     }
 
@@ -75,14 +74,14 @@ public sealed partial class MainForm
     {
         using var dlg = new SaveFileDialog
         {
-            Title = "Export settings", Filter = "Settings export (*.zip)|*.zip", FileName = $"SteamCmdHelper-settings-{DateTime.Now:yyyy-MM-dd}.zip",
+            Title = "Export settings", Filter = "Settings export (*.zip)|*.zip", FileName = $"SteamWorkshopUploader-settings-{DateTime.Now:yyyy-MM-dd}.zip",
             InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
         };
         if (dlg.ShowDialog(this) != DialogResult.OK) return;
         try
         {
             SaveWindow(); // so the file holds what the window shows now
-            var n = SettingsTransfer.Export(dlg.FileName, dropPod: true);
+            var n = SettingsTransfer.Export(dlg.FileName);
             Append($"Exported settings and upload history ({n} files) to {dlg.FileName}. It includes any Discord webhook links, so keep it private.", LogKind.Ok);
         }
         catch (Exception e) { MessageBox.Show(this, "Could not export the settings: " + e.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error); }
@@ -105,18 +104,18 @@ public sealed partial class MainForm
     {
         if (_busy) return;
         var list = SettingsBackups.List(SettingsBackups.DefaultDir);
-        if (list.Count == 0) { MessageBox.Show(this, "There are no backups yet. One is made each day Modwright starts.", Text, MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
+        if (list.Count == 0) { MessageBox.Show(this, "There are no backups yet. One is made each day Steam Workshop Uploader starts.", Text, MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
         using var w = new ListWindow("Restore a backup", "Pick the day to go back to. Your current settings are kept in a backup folder first, so this can be undone too.",
             new[] { ("Made", 220), ("Size", 100) });
         foreach (var b in list) w.AddRow(b, Tone.Normal, b.Made.ToString("dddd d MMMM yyyy, HH:mm"), PackageCheck.Size(b.Bytes));
         SettingsBackup? picked = null;
         w.DoubleClicked = tag => { picked = tag as SettingsBackup; w.Close(); };
         w.AddButton("&Restore", () => { picked = w.Selected as SettingsBackup; w.Close(); }, needsRow: true, primary: true);
-        w.AddButton("&Open the folder", () => OpenFolder(SettingsBackups.DefaultDir));
+        w.AddButton("&Open the folder", () => OpenPath(SettingsBackups.DefaultDir));
         w.AddClose();
         w.ShowDialog(this);
         if (picked != null)
-            ApplySettingsFile(picked.Path, $"Go back to the settings, upload history and Drop Pod modlists from {picked.Made:d MMMM, HH:mm}? The current ones are kept in a backup folder first.", "Restored");
+            ApplySettingsFile(picked.Path, $"Go back to the settings, and upload history from {picked.Made:d MMMM, HH:mm}? The current ones are kept in a backup folder first.", "Restored");
     }
 
     /// <summary>Reads a settings zip (an export or a daily backup), asks, asks where moved mods folders are, then takes its values.</summary>
@@ -147,7 +146,7 @@ public sealed partial class MainForm
         ShowProfiles();
         ShowAnnounce();
         _ = RefreshAllAsync();
-        MessageBox.Show(this, $"Settings {verb.ToLowerInvariant()}. Restart Modwright so every option shows its new value.", Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
+        MessageBox.Show(this, $"Settings {verb.ToLowerInvariant()}. Restart Steam Workshop Uploader so every option shows its new value.", Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
     /// <summary>The empty mod list says why it is empty and offers the button that fixes it.</summary>

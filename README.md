@@ -1,22 +1,19 @@
-# Modwright
+# Steam Workshop Uploader
 
-Windows desktop app for Steam Workshop mods, with two sides in one program:
+Windows desktop app for uploading your mods to the Steam Workshop without remembering any SteamCMD commands. Open it,
+tick the mods, press **Upload**. It shows each mod's version and Workshop id, checks the changelog before sending
+anything, handles the Steam login, and shows progress bars and a live log.
 
-- **The Launch Pad** (the Workshop uploader, for mod authors): upload mod updates without remembering any commands.
-  Open it, tick the mods, press **Upload**. It shows each mod's version and Workshop id, checks the changelog before
-  sending anything, handles the Steam login, and shows progress bars and a live log.
-- **The Drop Pod** (for RimWorld players): see every installed mod, sort the load order, keep modlists, find
-  missing dependencies and clashes, run separate instances, match a save's mods and read the game's log. See
-  [The Drop Pod](#the-drop-pod-rimworld-players).
+It works for **any game with a Steam Workshop**: you give it the game's Steam app ID and tell it how your mods are
+laid out (a built-in layout, or a [custom one](#custom-layouts-steamhelperjson)). RimWorld has its own built-in layout
+and extra tools for RimWorld mod authors. The upload logic is built in; the only outside tool it needs is SteamCMD.
 
-The Launch Pad works for **any game with a Steam Workshop**: you give it the game's Steam app ID and tell it how your
-mods are laid out. The upload logic is built in; the only outside tool it needs is SteamCMD.
+Steam Workshop Uploader started as the uploader half of [Modwright](https://github.com/AzraelGodKing/ModWright),
+without Modwright's mod manager for players (The Drop Pod). It has its own settings folder, program name and updates,
+so both can be installed side by side.
 
-Modwright was called SteamCMD Helper before 1.7.0. The program file (`SteamCmdHelper.exe`), its settings folder and
-the GitHub repository keep the old name, so updates and existing settings carry on as before.
-
-Modwright is an independent tool. It is not affiliated with or endorsed by Valve Corporation, Steam or Ludeon
-Studios. Steam and SteamCMD are trademarks of Valve Corporation; RimWorld is a trademark of Ludeon Studios.
+Steam Workshop Uploader is an independent tool. It is not affiliated with or endorsed by Valve Corporation, Steam or
+Ludeon Studios. Steam and SteamCMD are trademarks of Valve Corporation; RimWorld is a trademark of Ludeon Studios.
 
 ## Requirements
 
@@ -31,12 +28,12 @@ Studios. Steam and SteamCMD are trademarks of Valve Corporation; RimWorld is a t
 
 Each [GitHub Release](../../releases) has:
 
-- `SteamCmdHelper-<version>-Setup.exe`: installs the app for your Windows user (no administrator rights) with Start
+- `SteamWorkshopUploader-<version>-Setup.exe`: installs the app for your Windows user (no administrator rights) with Start
   menu and desktop shortcuts, and keeps it up to date the way most desktop apps do: a separate updater
   ([Velopack](https://velopack.io)) swaps in the new version after the app has closed, downloading only what changed.
-  Recommended. Uninstall it from Windows' **Installed apps**; your settings stay in `%LocalAppData%\SteamCmdHelper`.
-- `SteamCmdHelper-<version>-win-x64.exe`: a single self-contained exe; no .NET install needed.
-- `SteamCmdHelper-<version>-win-x64-framework-dependent.zip`: a small folder build that needs the
+  Recommended. Uninstall it from Windows' **Installed apps**; your settings stay in `%LocalAppData%\SteamWorkshopUploader`.
+- `SteamWorkshopUploader-<version>-win-x64.exe`: a single self-contained exe; no .NET install needed.
+- `SteamWorkshopUploader-<version>-win-x64-framework-dependent.zip`: a small folder build that needs the
   [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0). Use it if Windows or your antivirus
   refuses to launch the large single-file exe.
 
@@ -53,34 +50,34 @@ cannot be written to (for example under Program Files), it offers **Download** t
 Tick **Install new versions automatically** under **Options > About** to skip the question: a newer release is then
 downloaded and checked in the background and installed when you close the app (or press **Restart now** there). It is off
 by default. Only the public releases list and the release files are read; nothing about you or your mods is sent. Turn
-the check off, or **Check now**, under **Options > About**. From a script, `SteamCmdHelper update` does the same.
+the check off, or **Check now**, under **Options > About**. From a script, `SteamWorkshopUploader update` does the same.
 
 ### Install with winget or Scoop
 
 ```
-winget install AzraelGodKing.SteamCMDHelper
+winget install AzraelGodKing.SteamWorkshopUploader
 ```
 
 ```
-scoop bucket add steamcmdhelper https://github.com/AzraelGodKing/SteamCMDHelper
-scoop install steamcmdhelper
+scoop bucket add steamworkshopuploader https://github.com/AzraelGodKing/SteamWorkshopUploader
+scoop install steamworkshopuploader
 ```
 
-Both install the standalone exe and put `steamcmdhelper` on your PATH, so the command line below works from any
+Both install the standalone exe and put `steamworkshopuploader` on your PATH, so the command line below works from any
 terminal. `winget upgrade` and `scoop update` pick up new releases.
 
 ## Build and run
 
 ```powershell
-dotnet build SteamCmdHelper.csproj -c Release
+dotnet build SteamWorkshopUploader.csproj -c Release
 ```
 
-The program is `bin\Release\net8.0-windows\SteamCmdHelper.exe`. Make a shortcut to it.
+The program is `bin\Release\net8.0-windows\SteamWorkshopUploader.exe`. Make a shortcut to it.
 
 Branches: `main` is the released version and `test` is where new work comes together; pull requests go to `test`, and `test` is merged into `main` for each release. CI builds and tests every push to `main` or `test` and every pull request. For pull requests it also builds the base branch,
 takes the same `--shot` screenshots, and lists in the job summary which windows changed (the changed pixels are in red
 in the `screenshot-diffs` artifact). That step is informational and never fails the build. To release, bump `<Version>` in
-`SteamCmdHelper.csproj` and add a matching `## <version>` section to `CHANGELOG.md` on `test`, then run
+`SteamWorkshopUploader.csproj` and add a matching `## <version>` section to `CHANGELOG.md` on `test`, then run
 **Promote test and release** (see [Releasing](#releasing-maintainer)).
 
 ## Using it
@@ -100,7 +97,7 @@ leaves the mod list more room.
    The choice is saved in `.steamhelper.json` in the repo root; for a built-in layout that file holds only its name (and your app ID for Generic).
 4. **Steam account** (on the **Options** tab, under **Account**): type your Steam login name. The status line says whether a saved login
    exists; the same status shows next to the Upload button, and clicking it opens Options.
-   **Install SteamCMD** downloads it to `%LocalAppData%\SteamCmdHelper\steamcmd` (or uses
+   **Install SteamCMD** downloads it to `%LocalAppData%\SteamWorkshopUploader\steamcmd` (or uses
    `<repo>\_tools\steamcmd` if that exists).
 5. **Log in** happens automatically on the first upload. A SteamCMD window opens; type your password and the
    Steam Guard code there. This app never sees your password. Afterwards the login is cached.
@@ -140,7 +137,7 @@ code, and anything else left out is a warning. The RimWorld layout picks up buil
 folders such as `1.6/Assemblies` even when `*.dll` is ignored.
 Right-click a mod and choose **Package > Preview package...** to see every file and its size before uploading. It says which folders hold most of the size (click **Size** to sort by it) and lists what players rarely need (source art, debug files, a Source folder); **Leave these out of every package** saves those patterns as `LeaveOut` in `.steamhelper.json`, for git packaging too.
 
-Each upload remembers which files it sent (`%LocalAppData%\SteamCmdHelper\manifests`), so the next one of the same item
+Each upload remembers which files it sent (`%LocalAppData%\SteamWorkshopUploader\manifests`), so the next one of the same item
 says in the log what was added, changed and removed since then, and **Preview package...** marks each file. A package
 that is much smaller or larger than last time, or that lost many files, is warned about. When nothing at all changed
 since the last upload (and no Workshop page change goes with it), the app asks before uploading it again, since
@@ -177,7 +174,7 @@ to it and use the arrow keys) to give either more room; the log keeps that heigh
 whole log whatever is shown, **Clear** empties it, and **SteamCMD logs** opens SteamCMD's own log folder, which is
 where to look when Steam turns an upload down. Every upload run's log is also saved on its own, from the window and
 the command line alike: **Past logs** lists them by time and what was uploaded, so a failure can be read back after
-the window was closed. The newest 50 are kept, in `%LOCALAPPDATA%\SteamCmdHelper\logs`.
+the window was closed. The newest 50 are kept, in `%LOCALAPPDATA%\SteamWorkshopUploader\logs`.
 
 The app uses a dark theme by default. The **Theme** drop-down under **Options > Appearance** offers **Light**, **Kats**
 (gunmetal grey with orange), **Koneko** (purple and black), **Serina** (purple and mint green), **Wolfie** (blue and
@@ -218,7 +215,7 @@ The list columns:
 - **Workshop ID**: from the mod's own id file (`About/PublishedFileId.txt` for RimWorld); `0` means the upload creates a new item.
 - **Preview**: a thumbnail of the preview image; a red frame means it is over Steam's 1 MB limit, ✖ that it is
   missing (hover for the size). Right-click a mod and choose **Package > Shrink preview image under 1 MB** to re-save an
-  oversized preview just small enough (the original is kept in `%LocalAppData%\SteamCmdHelper\preview-backups`).
+  oversized preview just small enough (the original is kept in `%LocalAppData%\SteamWorkshopUploader\preview-backups`).
 - **Status**: a badge, followed by the first problem or warning when there is one:
   `Fix` (red, can't be uploaded), `Failed` (red, failed in the last run), `Changed` (amber, Steam has an older
   version), `New` (blue, not on Steam yet), `Up to date` (green, Steam already has this version) or `Ready` (the
@@ -296,7 +293,7 @@ Mods that name other Workshop items in their metadata (RimWorld's `modDependenci
 loads. A dependency that is private, removed or banned shows as a warning, since subscribers could not get it.
 
 The row tooltip shows each item's subscriber count and how it has changed this week and since the last upload from
-this PC. Counts are saved once a day in `%LocalAppData%\SteamCmdHelper\stats.json`, so the trend fills in over time.
+this PC. Counts are saved once a day in `%LocalAppData%\SteamWorkshopUploader\stats.json`, so the trend fills in over time.
 
 ### Command line (scripts and CI)
 
@@ -304,35 +301,35 @@ The same exe uploads without opening the window. It uses the repo, account and S
 unless you pass them, runs the same checks and upload code, and prints a summary at the end.
 
 ```powershell
-SteamCmdHelper upload MyMod OtherMod          # by folder or display name
-SteamCmdHelper upload --all --dry-run         # check and package every ready mod, upload nothing
-SteamCmdHelper upload --changed               # only the mods whose version Steam does not have yet
-SteamCmdHelper upload MyMod --ref release      # package the release branch instead of the checked-out commit
-SteamCmdHelper upload MyMod --test             # send it to the mod's private test item
-SteamCmdHelper upload --all --repo D:\mods --account mysteamname --log upload.log
-SteamCmdHelper upload MyMod --note "Hotfix for the save bug"   # this change note instead of the changelog's
-SteamCmdHelper upload --changed --note-from-git --tag --announce # notes from commits, then tag and announce
-SteamCmdHelper upload --changed --json        # only a JSON summary on stdout; progress goes to stderr
-SteamCmdHelper list                           # each mod's version, Workshop id and status
-SteamCmdHelper list --json                    # the same as JSON, for scripts
-SteamCmdHelper version MyMod patch --note "- Fixed the thing"   # 1.2.3 -> 1.2.4, with its changelog entry
-SteamCmdHelper update                         # install the newest release of the helper (--check: only report it)
-SteamCmdHelper upload --changed --one-session --verify   # one SteamCMD login, then check each upload on Steam
-SteamCmdHelper download MyMod --to D:\restore  # Steam's copy of a mod, into an empty folder
-SteamCmdHelper verify MyMod                   # compare Steam's copy with this PC's last upload
-SteamCmdHelper game-builds                    # the game's public build and betas, and what changed
-SteamCmdHelper test-install --to D:\rw-beta --branch unstable MyMod   # game beta install with MyMod and its dependencies
-SteamCmdHelper ci-setup                       # write a GitHub Actions workflow that uploads on a v* tag
-SteamCmdHelper login-secret                   # SteamCMD's saved login, for that workflow's secret
-SteamCmdHelper upload --group Core --tag --push-tags --run-after   # a saved group; push the tags; run the after-upload command
-SteamCmdHelper list --markdown                # every mod with its version and Workshop link (also --csv)
-SteamCmdHelper history --csv                  # this PC's uploads as CSV
-SteamCmdHelper note MyMod                     # the change note exactly as Steam would get it
-SteamCmdHelper game-version 1.7 --all         # add a RimWorld version to every mod (version folder and loadFolders.xml too)
-SteamCmdHelper doctor --login                 # check everything an upload needs and say what to fix
-SteamCmdHelper lint --strict                  # check every mod (About.xml too) without uploading; exit 1 if any is blocked
-SteamCmdHelper schedule --at "tomorrow 18:00" MyMod   # upload later through Windows Task Scheduler (--list, --cancel 1)
-SteamCmdHelper help                           # every option
+SteamWorkshopUploader upload MyMod OtherMod          # by folder or display name
+SteamWorkshopUploader upload --all --dry-run         # check and package every ready mod, upload nothing
+SteamWorkshopUploader upload --changed               # only the mods whose version Steam does not have yet
+SteamWorkshopUploader upload MyMod --ref release      # package the release branch instead of the checked-out commit
+SteamWorkshopUploader upload MyMod --test             # send it to the mod's private test item
+SteamWorkshopUploader upload --all --repo D:\mods --account mysteamname --log upload.log
+SteamWorkshopUploader upload MyMod --note "Hotfix for the save bug"   # this change note instead of the changelog's
+SteamWorkshopUploader upload --changed --note-from-git --tag --announce # notes from commits, then tag and announce
+SteamWorkshopUploader upload --changed --json        # only a JSON summary on stdout; progress goes to stderr
+SteamWorkshopUploader list                           # each mod's version, Workshop id and status
+SteamWorkshopUploader list --json                    # the same as JSON, for scripts
+SteamWorkshopUploader version MyMod patch --note "- Fixed the thing"   # 1.2.3 -> 1.2.4, with its changelog entry
+SteamWorkshopUploader update                         # install the newest release of the helper (--check: only report it)
+SteamWorkshopUploader upload --changed --one-session --verify   # one SteamCMD login, then check each upload on Steam
+SteamWorkshopUploader download MyMod --to D:\restore  # Steam's copy of a mod, into an empty folder
+SteamWorkshopUploader verify MyMod                   # compare Steam's copy with this PC's last upload
+SteamWorkshopUploader game-builds                    # the game's public build and betas, and what changed
+SteamWorkshopUploader test-install --to D:\rw-beta --branch unstable MyMod   # game beta install with MyMod and its dependencies
+SteamWorkshopUploader ci-setup                       # write a GitHub Actions workflow that uploads on a v* tag
+SteamWorkshopUploader login-secret                   # SteamCMD's saved login, for that workflow's secret
+SteamWorkshopUploader upload --group Core --tag --push-tags --run-after   # a saved group; push the tags; run the after-upload command
+SteamWorkshopUploader list --markdown                # every mod with its version and Workshop link (also --csv)
+SteamWorkshopUploader history --csv                  # this PC's uploads as CSV
+SteamWorkshopUploader note MyMod                     # the change note exactly as Steam would get it
+SteamWorkshopUploader game-version 1.7 --all         # add a RimWorld version to every mod (version folder and loadFolders.xml too)
+SteamWorkshopUploader doctor --login                 # check everything an upload needs and say what to fix
+SteamWorkshopUploader lint --strict                  # check every mod (About.xml too) without uploading; exit 1 if any is blocked
+SteamWorkshopUploader schedule --at "tomorrow 18:00" MyMod   # upload later through Windows Task Scheduler (--list, --cancel 1)
+SteamWorkshopUploader help                           # every option
 ```
 
 - The Steam login must already be saved: log in once from the window (**Options > Account > Log in...**). The command checks
@@ -357,7 +354,7 @@ SteamCmdHelper help                           # every option
   expired login or a Steam Guard prompt ends the run with an error instead of leaving a scheduled task or CI job
   waiting until it is killed.
 - The app is a Windows program, so in a `cmd` window the prompt comes back before the output finishes. Use
-  `start /wait SteamCmdHelper upload ...` (or `Start-Process -Wait` in PowerShell) when the next line needs the result,
+  `start /wait SteamWorkshopUploader upload ...` (or `Start-Process -Wait` in PowerShell) when the next line needs the result,
   or `--log <file>`. Redirected output (CI steps, `> out.txt`) and exit codes work as usual.
 
 ### Build step, uploading from a branch, test items and rolling back
@@ -405,7 +402,7 @@ marked as rolled back. Your working folder is not touched; raise the version for
   when the game got a new public build or a beta changed, which is when mods break and supported versions need a bump.
   Turn it off under **Options > SteamCMD**.
 - **Try in a game beta...** (right-click a mod > On Steam, or **Options > SteamCMD**; `test-install`) installs a separate copy of
-  the game on any branch with `app_update -beta`, into an empty folder (by default under `%LocalAppData%\SteamCmdHelper\test-installs`).
+  the game on any branch with `app_update -beta`, into an empty folder (by default under `%LocalAppData%\SteamWorkshopUploader\test-installs`).
   With a mod selected, it then puts that mod, packaged as an upload would, and every Workshop item it lists as a
   dependency into the game's mods folder (RimWorld: `Mods`). Start the game's program in that folder to try the mod
   on the next game version; your normal Steam install is not touched. The first install downloads the whole game.
@@ -501,7 +498,7 @@ line to, every ticked mod's description, and sets their visibility, all sent wit
 
 ### Check setup
 
-**Options > About > Check setup** (or `SteamCmdHelper doctor`) checks the mods folder, its layout and app ID, how many
+**Options > About > Check setup** (or `SteamWorkshopUploader doctor`) checks the mods folder, its layout and app ID, how many
 mods need fixing, SteamCMD and the saved login, git and gh when they are used, the Discord link, the Steam client when
 tags or required items go through it, the Thunderstore token, free disk space and the data folder, and says what to
 fix. The window really logs in with the saved login; on the command line add `--login` for that. Nothing is changed.
@@ -543,7 +540,6 @@ logged in once in SteamCMD's own window. That account has to own the game.
 | Game branches, the new-build notice | Anonymous | A game's branches and build ids are public |
 | Steam version, Updated, subscribers, the game's name | None (Steam's web pages) | Read from public Workshop pages without SteamCMD |
 | Workshop tags, required items, gallery, other languages, comment counts | The Steam client | SteamCMD can't set these, so the running Steam client does it as the signed-in account |
-| Drop Pod: send the active mods to a Steam collection | The Steam client | SteamCMD can't make collections; the signed-in account must own the game (and the collection, to update it) |
 | Publish to Thunderstore | Thunderstore token | Thunderstore has its own accounts; Steam is not involved |
 | GitHub Actions upload | Saved, copied into a secret | The runner has no one to type a password, so it reuses the saved login |
 
@@ -562,103 +558,7 @@ your password), the next job that needs it says so and offers to log in again. A
 Tick **Allow creating new items**. They are created private, with the title, description and preview image
 from your layout. The new id is saved to the id file; commit it.
 
-## The Drop Pod (RimWorld and Sun Haven players)
-
-**Only want one side?** The first start asks whether you want the mod manager (The Drop Pod), the mod uploader (The
-Launch Pad), or both, and shows only what you pick. Change it any time under **Options > Appearance > Show**; nothing
-else changes. Settings from an earlier version keep both.
-
-The **DROP POD** tab is for the mods you play with. It finds RimWorld through your Steam libraries (or a folder you
-pick with **Game folder...**) and reads every mod from the base game and DLC, the game's Mods folder and the Workshop.
-Nothing in the game folder is changed until you press **Save to game**, which writes `ModsConfig.xml` and keeps the
-old one as a timestamped backup next to it. It refuses while RimWorld is running, because the game writes its own
-list when it closes.
-
-- **Mods:** tick a mod to make it active; Up and Down (Alt+Up/Down) move it, or drag one or several mods to a new
-  place (dragging an inactive mod into the list activates it there). **Sort** orders the active mods by
-  their dependencies and loadAfter/loadBefore lists (version-specific ones included), base game and DLC first; where
-  no rule decides it keeps your order, or goes A to Z. Mods whose rules loop are named, not dropped.
-- **Modlists:** **Save as...** keeps the active mods as a named list and **Switch to it** makes one active.
-  **More** imports and exports lists (also RimWorld's own `.rml` files), copies a share code (`DROPPOD1:...`) to
-  paste in a chat, adds a list from one, and sends the active mods to a **Steam collection**: a new one, or one you
-  made before, updated to match exactly (inactive mods are taken out; the base game, DLC and local mods without a
-  Workshop id can't be in a collection). Collections go through the Steam client, so Steam must be running and
-  signed in with an account that owns RimWorld.
-- **Problems:** missing or inactive dependencies, mods loading before what they need, broken load rules,
-  incompatible pairs, mods for another game version, mods installed twice and unreadable About.xml files.
-  **Activate needed mods** ticks installed dependencies; **Download missing** subscribes to linked Workshop items
-  through the Steam client when it is running (Steam then keeps them up to date), else fetches them with SteamCMD and
-  your saved login into the Mods folder; **Check for updates** asks Steam which Workshop mods are newer, and GitHub
-  about Mods folder mods whose About.xml links a GitHub repository (those can be updated in place, the old copy zipped
-  into the mod-backups folder first).
-- **Instances:** **New...** makes a separate setup with its own options, mod list, saves and log (through
-  RimWorld's `-savedatafolder` switch), optionally on another RimWorld install. Pick it in the Instance list to edit
-  its mods; **Play** starts it. **More** exports an instance to a zip (with or without saves), imports one, opens its
-  folder or deletes it. Mods are shared between instances.
-- **Saves...:** each save with its game version and how its mods differ from the active ones. **Use this save's
-  mods** makes the active list match (and offers to download missing Workshop mods); only the top of each save is
-  read, so large saves open at once.
-- **Test** and **Read the log:** Test starts the game and watches its log; Read the log reads the last one.
-  Errors and warnings are grouped and each names the mod most likely at fault: its code in the stack trace (read
-  from the mod's DLLs, never run), its Harmony patch on a method there, a file in its folder, or its package ID.
-- **Insight:** hints about the active mods: methods two mods both rewrite with Harmony transpilers, prefixes that
-  can stop other mods' changes, mods that patch per-tick methods, mods heavy on textures or definitions, and your
-  rules file's notes. It also loads every active mod's Defs and Patches the way the game does and shows **XML
-  clashes**: a mod replacing another mod's def, a patch overwriting or removing what another mod's patch changed (the
-  one lower in the list wins), patches that find nothing (red errors in the log) and XML files that aren't valid.
-- **Details beside the list:** the picked mod's preview, author, version, needs and needed-by, modlists, your note
-  and description, with buttons for its folder, Workshop page and change notes. Right-click a mod for **Why is this
-  mod here?** (the rules that put it there) and **Note and colour...**.
-- **Undo:** Ctrl+Z and Ctrl+Y undo and redo list changes. Every Save to game is kept in **Tools > Load order
-  history**, with what was added, removed and moved, and any earlier list can be put back.
-- **Tools:** **Find the broken mod for me** (halves the suspects each round until one is left, then puts your list
-  back), **Load a Steam collection as a modlist**, **Compare with a friend's list** (from a share code, with Make mine
-  match), **Load times** (each start timed from the log), **Clean up unused mods and settings** (to the Recycle Bin,
-  Workshop mods unsubscribed), **Turn downloaded copies into subscriptions** (SteamCMD copies in the Mods folder handed
-  to Steam, which keeps them up to date), **Optimize textures** (a DDS beside each PNG of the mods you tick, which RimWorld 1.5+
-  loads faster and keeps far smaller in video memory; Undo removes them), and **Back up the newest save before a risky start**.
-- **More:** export the active mods **with their mod settings** as a .zip (import takes it too), set **launch
-  options** for the normal game or an instance, and **freeze** an instance: its Workshop mods are copied in so Steam
-  updates can't change them, and linked into the Mods folder only while it plays.
-- After **Check for updates**, the change notes of mods with updates are shown, with risky lines marked. The log
-  window's **Report to the author** opens a ready bug report on the mod's GitHub issues or Workshop comments.
-  Right-click Modwright on the taskbar to start RimWorld or an instance without opening the window.
-
-### Sun Haven in The Drop Pod
-
-Pick **Sun Haven** in the game list at the top of the tab (the choice is remembered). Sun Haven mods are BepInEx
-plugins, so The Drop Pod works the way r2modman lays them out:
-
-- **Mods** are the folders and loose DLLs in `BepInEx\plugins` (name and version from Thunderstore's `manifest.json`,
-  else from the plugin's own BepInPlugin attribute, read without running it). Untick a mod and **Save to game** moves it
-  to `BepInEx\plugins-disabled`; tick it again to move it back. BepInEx loads plugins in no order you set, so Sort,
-  Up, Down and dragging are off.
-- **Problems** lists the dependencies a manifest names that are missing or disabled. **Download missing** fetches them
-  from [Thunderstore](https://thunderstore.io/c/sun-haven/) (with whatever they need in turn) into
-  `BepInEx\plugins\Author-Name`; their config files go to `BepInEx\config` but never over yours.
-- **Check for updates** asks Thunderstore about every plugin that came from it and updates the ticked ones, zipping the
-  old copy into the mod-backups folder first.
-- Modlists, share codes, Compare with a friend's list, Find the broken mod, notes, history, **Play**, **Test** and
-  **Read the log** (BepInEx's `LogOutput.log`) all work as for RimWorld. Instances, saves, Insight and the Workshop and
-  texture tools are RimWorld-only and hidden. BepInEx itself is never installed or changed; if it is missing, the tab
-  says so.
-
-### The Drop Pod on the command line
-
-```
-SteamCmdHelper droppod lists                  the saved modlists (* marks the one in use)
-SteamCmdHelper droppod instances              the instances
-SteamCmdHelper droppod active [--json]        the active mods in load order
-SteamCmdHelper droppod problems [--json]      problems with the active mods (exit code 1 on errors)
-SteamCmdHelper droppod switch <modlist>       make a modlist the game's active mods
-SteamCmdHelper droppod play [<modlist>]       start the game, after switching to the modlist
-```
-
-Add `--instance <name>` to any of them to use an instance, and `--game SunHaven` (or `--game RimWorld`) to pick the
-game when The Drop Pod is set to the other one. A desktop shortcut to
-`SteamCmdHelper.exe droppod play "Heavy run" --instance Medieval` starts that setup in one click.
-
-### For mod authors: RimWorld tools in The Launch Pad
+## RimWorld tools
 
 Right-click one of your mods > **RimWorld** (RimWorld layouts only):
 
@@ -667,30 +567,13 @@ Right-click one of your mods > **RimWorld** (RimWorld layouts only):
   mod. The upload confirmation warns when the last test had errors or the mod changed since, and when a dependency
   was updated it suggests testing again. **Compatibility grid** shows the last result per supported game version.
 - **Play it live:** links the mod's folder into RimWorld's Mods folder (a directory junction), so each build is in
-  the game at once. Only links Modwright made are ever removed; the folder itself is never touched.
-- **Edit About.xml:** the common fields with the Drop Pod's checks live, and rules picked from your installed mods.
+  the game at once. Only links Steam Workshop Uploader made are ever removed; the folder itself is never touched.
+- **Edit About.xml:** the common fields with the About.xml checks live, and rules picked from your installed mods.
 - **Patch check before upload:** with RimWorld found, the upload confirmation runs the mod's XML with only the game,
   the DLC and its dependencies, and names patches that find nothing and defs it takes over from a dependency. Without
   the game it still flags a def defined twice, a texPath into the mod's own Textures with no texture, and English
   Keyed texts nothing in the mod mentions.
 - **Read a player's log:** paste a log or a pastebin/gist/hastebin link and see only the problems in your own mods.
-
-### Your own load-order rules
-
-No community rules list is bundled. To add your own rules, pick a JSON file with **More > Use my own load-order
-rules file**. Keys are package IDs; every field is optional, and comments and trailing commas are allowed:
-
-```json
-{
-  "rules": {
-    "some.mod": { "loadAfter": ["other.mod"], "loadBefore": ["third.mod"] },
-    "big.framework": { "loadFirst": true },
-    "slow.mod": { "note": "Slows down long games", "incompatibleWith": ["clashing.mod"] }
-  }
-}
-```
-
-Sort follows the rules, Problems reports `incompatibleWith` pairs, and notes show in Problems and Insight.
 
 ## Custom layouts: `.steamhelper.json`
 
@@ -775,17 +658,17 @@ The key is stored masked, but anyone with the exe could still extract it. Keep i
 ## Safety
 
 - Password and Steam Guard code are typed into SteamCMD's own window, never into this app, and not saved.
-- Settings (repo path, account name, theme) live in `%LocalAppData%\SteamCmdHelper\settings.json`. For portable
-  mode, put an empty file named `portable.txt` next to `SteamCmdHelper.exe`: settings, history and the default SteamCMD
+- Settings (repo path, account name, theme) live in `%LocalAppData%\SteamWorkshopUploader\settings.json`. For portable
+  mode, put an empty file named `portable.txt` next to `SteamWorkshopUploader.exe`: settings, history and the default SteamCMD
   then live in a `data` folder beside the exe instead (for a USB stick or a synced folder).
-- If the app hits an unexpected error it saves a report to `%LocalAppData%\SteamCmdHelper\crashes` (the newest 20) and
+- If the app hits an unexpected error it saves a report to `%LocalAppData%\SteamWorkshopUploader\crashes` (the newest 20) and
   offers **Report it**, which opens the request form as a bug report with the details filled in for you to review.
   Nothing is sent unless you press Send.
 - Only one window opens at a time, so two copies never run SteamCMD against the same login; starting it again brings
   the open window to the front. The command line is not affected.
 - Self-updates are installed only when the download matches the release's SHA-256 checksum and version.
 - Profiles and Discord webhook links are kept in the same settings file, not in your repo.
-- The upload history lives in `%LocalAppData%\SteamCmdHelper\history.json` (the newest 1000 uploads).
+- The upload history lives in `%LocalAppData%\SteamWorkshopUploader\history.json` (the newest 1000 uploads).
 - SteamCMD keeps the login cache in its own folder (`config/config.vdf`); keep it out of git. **Copy login secret...**
   and `login-secret` hand that file out (base64) only when you ask, for a GitHub secret.
 - The layout file holds no secrets, but it is a new file in your repo: commit it or git-ignore it.
@@ -799,7 +682,7 @@ The key is stored masked, but anyone with the exe could still extract it. Keep i
   returns its id). Otherwise the row is marked failed and the package is kept in `%TEMP%\steamcmd_helper_*` to inspect.
   After updating an existing public or unlisted item, the app also asks Steam whether the item's "updated" time moved:
   that confirms the update in the log, and it counts a clean run whose `Success.` line went missing as uploaded.
-- Headless checks: `SteamCmdHelper.exe [--repo <folder>] --selftest out.txt`, `... --package <ModFolder> out.txt`.
+- Headless checks: `SteamWorkshopUploader.exe [--repo <folder>] --selftest out.txt`, `... --package <ModFolder> out.txt`.
   `--shot <folder>` saves screenshots of the main window, each Options section and the request form in both themes.
 
 ## Privacy
@@ -812,9 +695,6 @@ or the person installing or operating it. What it does connect to, and why:
   release when you choose to update. Nothing about you or your mods is sent. Turn it off under **Options > About**
   (**Check for a newer version at start-up**). Making a GitHub release for an upload (**Options > Uploading > After uploading**) runs your
   own `gh` tool, only when you turn it on for a mods folder.
-- **GitHub, for Drop Pod updates:** **Check for updates** in The Drop Pod also reads the public latest release of each
-  GitHub repository a Mods folder mod links in its About.xml, and downloads a release only when you tick that mod to
-  update. Nothing about you or your mods is sent.
 - **Steam** ([Valve privacy policy](https://store.steampowered.com/privacy_agreement/)): uploads go through Valve's
   SteamCMD, which you sign in to yourself. The app reads public Workshop details and changelog pages for the Workshop ids
   in your mods folder, looks up a game's name from its app ID when you enter one, and downloads SteamCMD from Valve when
@@ -827,8 +707,6 @@ or the person installing or operating it. What it does connect to, and why:
   an upload it posts the mod's name, Workshop link and change note there.
 - **Thunderstore** ([privacy policy](https://thunderstore.io/privacy-policy/)): only when you publish to it; it receives
   the mod's package and your team's token, and the app reads the package's public page to see which version is there.
-  For Sun Haven in The Drop Pod, **Download missing** and **Check for updates** read the public package details of the
-  plugins involved and download the packages you get or update. Nothing about you is sent.
 
 ## Accessibility
 
@@ -845,21 +723,11 @@ dotnet test tests/SteamCmdHelper.Tests
 
 The tests compile the non-UI source files directly, so they run on Windows, Linux or macOS.
 
-On Windows there are also click-through tests that start the real app and use it through UI Automation (FlaUI): a
-portable copy in a temp folder, with a fake RimWorld and Sun Haven, so nothing of yours is touched. Build the app first
-(or set `MODWRIGHT_EXE` to an exe), then:
-
-```
-dotnet build SteamCmdHelper.csproj -c Release
-dotnet test tests/SteamCmdHelper.UiTests -c Release
-```
-
-CI runs them against the published exe on every push and pull request.
 
 ## Releasing (maintainer)
 
 Run **Actions > Promote test and release > Run workflow** when `test` is ready to ship. It rebases `test` onto `main`,
-checks that `<Version>` in `SteamCmdHelper.csproj` has a `## <version>` section in `CHANGELOG.md` and no tag yet, runs
+checks that `<Version>` in `SteamWorkshopUploader.csproj` has a `## <version>` section in `CHANGELOG.md` and no tag yet, runs
 the tests, then in one push fast-forwards `main`, tags it `v<version>` and resets `test` to the new `main`. The tag
 starts the release below. It never changes the version: bump it on `test` first. Optional inputs: **version** stops the
 run if `test` declares a different one, and **dry run** does every check and the tests but pushes nothing. If `test`
@@ -877,7 +745,7 @@ allowed to push to it directly.
 Pushing a `vX.Y.Z` tag by hand also works. Either way, the tag runs `.github/workflows/release.yml`, which tests,
 builds, signs (when set up), and publishes the release. After a non-prerelease it also:
 
-- opens a pull request pointing `bucket/steamcmdhelper.json` (the Scoop manifest) at the new exe and its SHA-256.
+- opens a pull request pointing `bucket/steamworkshopuploader.json` (the Scoop manifest) at the new exe and its SHA-256.
   This needs **Settings > Actions > General > Allow GitHub Actions to create and approve pull requests**.
 - sends the new version to winget with `wingetcreate`, once a `WINGET_TOKEN` secret exists (a classic GitHub token
   with `public_repo`). The package must be in [winget-pkgs](https://github.com/microsoft/winget-pkgs) first: submit
@@ -890,7 +758,7 @@ framework-dependent zip, through [SignPath](https://signpath.org) (free for open
 
 - secret `SIGNPATH_API_TOKEN` (a SignPath CI user with submitter rights on the project)
 - variable `SIGNPATH_ORGANIZATION_ID`
-- optional variables `SIGNPATH_PROJECT_SLUG` (default `SteamCMDHelper`) and `SIGNPATH_POLICY_SLUG`
+- optional variables `SIGNPATH_PROJECT_SLUG` (default `SteamWorkshopUploader`) and `SIGNPATH_POLICY_SLUG`
   (default `release-signing`)
 
 The SignPath project's artifact configuration is [packaging/signpath/artifact-configuration.xml](packaging/signpath/artifact-configuration.xml):

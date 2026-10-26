@@ -8,13 +8,13 @@ public class UpdateCheckTests
     const string Release = """
         {
           "tag_name": "v1.2.0",
-          "html_url": "https://github.com/AzraelGodKing/SteamCMDHelper/releases/tag/v1.2.0",
+          "html_url": "https://github.com/AzraelGodKing/SteamWorkshopUploader/releases/tag/v1.2.0",
           "draft": false,
           "prerelease": false,
           "assets": [
             { "name": "SHA256SUMS.txt", "browser_download_url": "https://example.test/SHA256SUMS.txt" },
-            { "name": "SteamCmdHelper-1.2.0-win-x64-framework-dependent.zip", "browser_download_url": "https://example.test/fd.zip" },
-            { "name": "SteamCmdHelper-1.2.0-win-x64.exe", "browser_download_url": "https://example.test/app.exe" }
+            { "name": "SteamWorkshopUploader-1.2.0-win-x64-framework-dependent.zip", "browser_download_url": "https://example.test/fd.zip" },
+            { "name": "SteamWorkshopUploader-1.2.0-win-x64.exe", "browser_download_url": "https://example.test/app.exe" }
           ]
         }
         """;
@@ -26,7 +26,7 @@ public class UpdateCheckTests
 
         Assert.NotNull(r);
         Assert.Equal("1.2.0", r!.Version);
-        Assert.Equal("https://github.com/AzraelGodKing/SteamCMDHelper/releases/tag/v1.2.0", r.PageUrl);
+        Assert.Equal("https://github.com/AzraelGodKing/SteamWorkshopUploader/releases/tag/v1.2.0", r.PageUrl);
         Assert.Equal("https://example.test/app.exe", r.DownloadUrl);
     }
 
