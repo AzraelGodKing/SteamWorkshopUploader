@@ -11,7 +11,7 @@ public sealed partial class MainForm
 {
     void BuildUi()
     {
-        Text = "Modwright - The Launch Pad";
+        Text = "Steam Workshop Uploader";
         Width = 1000; Height = 800; MinimumSize = new Size(840, 640); // at 96 DPI; scaled and fitted to the screen after Theme.Apply
         Font = Theme.BodyFont;
         StartPosition = FormStartPosition.CenterScreen;
@@ -150,7 +150,7 @@ public sealed partial class MainForm
         var bar = new TableLayoutPanel { Dock = DockStyle.Bottom, AutoSize = true, ColumnCount = 2, RowCount = 1, Padding = new Padding(16, 3, 16, 4) };
         bar.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         bar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        bar.Controls.Add(new Label { Text = "Modwright " + UpdateCheck.CurrentVersion, AutoSize = true, Font = Theme.SmallFont, Anchor = AnchorStyles.Left, Margin = Padding.Empty }.Role(ThemeRole.Muted), 0, 0);
+        bar.Controls.Add(new Label { Text = "Steam Workshop Uploader " + UpdateCheck.CurrentVersion, AutoSize = true, Font = Theme.SmallFont, Anchor = AnchorStyles.Left, Margin = Padding.Empty }.Role(ThemeRole.Muted), 0, 0);
         bar.Controls.Add(new Label { Text = Disclaimer, AutoSize = true, Font = Theme.SmallFont, Anchor = AnchorStyles.Right, Margin = Padding.Empty }.Role(ThemeRole.Muted), 1, 0);
         var footer = new Panel { Dock = DockStyle.Bottom, AutoSize = true };
         footer.Controls.Add(bar);
@@ -898,13 +898,13 @@ public sealed partial class MainForm
         foreach (var t in Display.Themes) _theme.Items.Add(Localizer.T(t.Label));
         Tip(_textSize, "Makes all text, and the layout with it, larger than Windows' own scaling");
         ShowThemeChoice();
-        AddSection("Appearance", "How Modwright looks for your Windows user.",
+        AddSection("Appearance", "How Steam Workshop Uploader looks for your Windows user.",
             Card("Theme and text", null,
                 Row(Lbl("Theme"), _theme),
                 _contrastNote,
                 Row(Lbl("Te&xt size"), _textSize),
                 Hint("The theme changes straight away; Match Windows follows Windows' light or dark app mode. " +
-                     "A new text size is used the next time Modwright starts."),
+                     "A new text size is used the next time Steam Workshop Uploader starts."),
                 Row(_showDetails),
                 Hint("Its preview image, numbers on Steam, change note, description and buttons, on the Launch Pad tab when the window is wide enough " +
                      "for the list's columns too. Drag the bar between the list and the details to resize them.")),
@@ -935,7 +935,7 @@ public sealed partial class MainForm
         });
         AddSection("About", "Version and updates, where your data is kept, and help.",
             Card("Updates", null,
-                Hint($"Modwright {version}."),
+                Hint($"Steam Workshop Uploader {version}."),
                 Row(_checkUpdates, _checkUpdateNow, Btn("What's new...", (_, _) => ShowAllChanges())),
                 _autoUpdate,
                 _updateReady),
@@ -946,12 +946,12 @@ public sealed partial class MainForm
             Card("Your data", null,
                 Hint(AppSettings.Portable
                     ? $"Portable mode ({AppSettings.PortableMarker} is next to the program): settings, the recent folders list and the upload history are kept in {AppSettings.Folder}, so they travel with it."
-                    : $"Settings, the recent folders list and the upload history are kept in %LocalAppData%\\SteamCmdHelper for your Windows user only. To keep them beside the program instead (on a USB stick, say), put an empty file named {AppSettings.PortableMarker} next to SteamCmdHelper.exe."),
+                    : $"Settings, the recent folders list and the upload history are kept in %LocalAppData%\\SteamWorkshopUploader for your Windows user only. To keep them beside the program instead (on a USB stick, say), put an empty file named {AppSettings.PortableMarker} next to SteamWorkshopUploader.exe."),
                 Row(openData, forget),
                 Row(Btn("E&xport settings...", (_, _) => ExportSettings()), Btn("&Import settings...", (_, _) => ImportSettings()),
                     Btn("Export upload &history...", (_, _) => ExportHistory(UploadHistory.Load(), "upload-history.csv"))),
                 Row(Btn("&Restore a backup...", (_, _) => RestoreSettingsBackup())),
-                Hint($"A backup of the settings and upload history is made once a day when Modwright starts (the newest {SettingsBackups.Keep} are kept)."),
+                Hint($"A backup of the settings and upload history is made once a day when Steam Workshop Uploader starts (the newest {SettingsBackups.Keep} are kept)."),
                 Hint("Export saves your settings, profiles, per-folder options (including Discord webhook links, so keep the file private), and upload history in one " +
                      "zip, to bring to another PC with Import. SteamCMD and its saved Steam login stay behind: log in once on the new PC.")),
             Card("Help", null,
@@ -1099,8 +1099,8 @@ public sealed partial class MainForm
         _s.Language = code;
         _s.Save();
         var name = _language.SelectedItem as string ?? code;
-        Append($"Language set to {name}. It is used the next time Modwright starts.", LogKind.Note);
-        Say($"{name} is used the next time Modwright starts.");
+        Append($"Language set to {name}. It is used the next time Steam Workshop Uploader starts.", LogKind.Note);
+        Say($"{name} is used the next time Steam Workshop Uploader starts.");
     }
 
     /// <summary>Writes a translation file with every window text seen so far, filled in from the language picked (or empty for a new one).</summary>
@@ -1129,8 +1129,8 @@ public sealed partial class MainForm
         if (size == Display.NormalizeTextSize(_s.TextSize)) return;
         _s.TextSize = size;
         _s.Save();
-        Append($"Text size set to {size}%. It is used the next time Modwright starts.", LogKind.Note);
-        Say($"Text size {size}% is used the next time Modwright starts.");
+        Append($"Text size set to {size}%. It is used the next time Steam Workshop Uploader starts.", LogKind.Note);
+        Say($"Text size {size}% is used the next time Steam Workshop Uploader starts.");
     }
 
     /// <summary>Colours everything again after the theme changed (a new choice, or Windows changed its mode or contrast).</summary>

@@ -8,19 +8,19 @@ using System.Text.RegularExpressions;
 namespace SteamCmdHelper;
 
 /// <summary>An upload left for Windows Task Scheduler to start later: what it runs and when.</summary>
-/// <param name="Name">The task's full name in Task Scheduler (under the "SteamCMD Helper" folder).</param>
+/// <param name="Name">The task's full name in Task Scheduler (under the "Steam Workshop Uploader" folder).</param>
 /// <param name="What">For people: "Alpha, Beta", "every mod" or "group Core".</param>
 public sealed record ScheduledUpload(string Name, DateTime At, string Repo, string What, List<string> Args);
 
 /// <summary>
 /// "Upload later": the ticked mods are uploaded at a time you pick by Windows Task Scheduler running this program's
-/// command line ("SteamCmdHelper upload ... --repo ..."), so the window does not have to stay open. The task is made
+/// command line ("SteamWorkshopUploader upload ... --repo ..."), so the window does not have to stay open. The task is made
 /// from an XML definition, so the time never depends on the PC's date format. If the PC is off at that time, it runs
 /// as soon as it can. This PC's scheduled uploads are remembered in the data folder, to list and cancel.
 /// </summary>
 public static class ScheduledUploads
 {
-    public const string TaskFolder = "SteamCMD Helper";
+    public const string TaskFolder = "Steam Workshop Uploader";
 
     public static string DefaultFile => Path.Combine(AppSettings.Folder, "scheduled.json");
 
@@ -176,7 +176,7 @@ public static class ScheduledUploads
         var name = TaskName(at, what);
         var xml = Path.Combine(tempDir ?? Path.GetTempPath(), $"sch-task-{Guid.NewGuid():N}.xml");
         Directory.CreateDirectory(Path.GetDirectoryName(xml)!);
-        File.WriteAllText(xml, TaskXml(exe, CommandLine(args), repo, at, $"Modwright uploads {what} from {repo}."), Encoding.Unicode);
+        File.WriteAllText(xml, TaskXml(exe, CommandLine(args), repo, at, $"Steam Workshop Uploader uploads {what} from {repo}."), Encoding.Unicode);
         (int Code, string Output) r;
         try { r = await Runner(new[] { "/Create", "/TN", name, "/XML", xml, "/F" }, ct); }
         catch (Exception e) when (e is not OperationCanceledException) { return (null, "Task Scheduler could not be started: " + e.Message); }

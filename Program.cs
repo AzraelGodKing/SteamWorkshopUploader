@@ -172,7 +172,7 @@ static class Program
             return SelfUpdate.Finish(args[1..], message =>
             {
                 ApplicationConfiguration.Initialize();
-                MessageBox.Show(message, "Modwright", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(message, "Steam Workshop Uploader", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             });
 
         // Setting one Workshop item's tags through the Steam client, for a window or command line run (see WorkshopTags).
@@ -181,9 +181,9 @@ static class Program
 
         if (Cli.IsCommand(args)) return RunCommandLine(args);
 
-        // Headless checks used for testing (the real command line is "SteamCmdHelper upload ...", see Cli):
-        //   SteamCmdHelper.exe --selftest <output.txt>                       list what the scanner sees
-        //   SteamCmdHelper.exe --package <ModFolder> <output.txt> [--create] stage a dry-run package, write the .vdf path and file list
+        // Headless checks used for testing (the real command line is "SteamWorkshopUploader upload ...", see Cli):
+        //   SteamWorkshopUploader.exe --selftest <output.txt>                       list what the scanner sees
+        //   SteamWorkshopUploader.exe --package <ModFolder> <output.txt> [--create] stage a dry-run package, write the .vdf path and file list
         var lt = Array.IndexOf(args, "--layouttest");
         if (lt >= 0 && lt + 1 < args.Length) { File.WriteAllText(args[lt + 1], LayoutTest()); return 0; }
 
@@ -390,9 +390,9 @@ static class Program
             var quit = new TaskDialogButton("Close the app");
             var page = new TaskDialogPage
             {
-                Caption = "Modwright",
+                Caption = "Steam Workshop Uploader",
                 Heading = "Something went wrong",
-                Text = "Modwright hit an error it did not expect. " +
+                Text = "Steam Workshop Uploader hit an error it did not expect. " +
                     (canContinue ? "You can keep going, but if anything looks wrong, restart the app. " : "It has to close. ") +
                     "Report it sends the details below as a bug report, after you review them." +
                     (path != null ? $"\n\nSaved to {path}" : ""),

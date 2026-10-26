@@ -43,7 +43,7 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Build app
-        run: dotnet build SteamCmdHelper.csproj -c Release
+        run: dotnet build SteamWorkshopUploader.csproj -c Release
 
       - name: Test
         run: dotnet test tests/SteamCmdHelper.Tests -c Release --logger "trx;LogFileName=results.trx" --results-directory TestResults
@@ -64,13 +64,13 @@ jobs:
           PROJECTID: ${{ secrets.PROJECTID }}
           LABELIDS: ${{ secrets.LABELIDS }}
           LABELMAP: ${{ secrets.LABELMAP }}
-        run: dotnet publish SteamCmdHelper.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishReadyToRun=true -o publish
+        run: dotnet publish SteamWorkshopUploader.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishReadyToRun=true -o publish
 
       - name: Upload exe
         uses: actions/upload-artifact@v4
         with:
-          name: SteamCmdHelper-win-x64
-          path: publish/SteamCmdHelper.exe
+          name: SteamWorkshopUploader-win-x64
+          path: publish/SteamWorkshopUploader.exe
 
       # Screenshots of both themes for reviewing UI changes. Best effort: never fails the build.
       - name: Screenshots
@@ -81,7 +81,7 @@ jobs:
           # A 1920x1080 screen, so the wide-window shots (the details panel beside the mod list) fit.
           try { Set-DisplayResolution -Width 1920 -Height 1080 -Force } catch { "Could not change the screen size: $_" }
           New-Item -ItemType Directory -Force shots | Out-Null
-          Start-Process -FilePath publish/SteamCmdHelper.exe -ArgumentList '--shot', "$PWD\shots" -Wait
+          Start-Process -FilePath publish/SteamWorkshopUploader.exe -ArgumentList '--shot', "$PWD\shots" -Wait
           Get-ChildItem shots
           if (Test-Path shots/error.txt) { Get-Content shots/error.txt }
 
@@ -108,9 +108,9 @@ jobs:
           LABELMAP: ${{ secrets.LABELMAP }}
         run: |
           git worktree add ../base ${{ github.event.pull_request.base.sha }}
-          dotnet build ../base/SteamCmdHelper.csproj -c Release -o basebin
+          dotnet build ../base/SteamWorkshopUploader.csproj -c Release -o basebin
           New-Item -ItemType Directory -Force baseshots | Out-Null
-          Start-Process -FilePath basebin/SteamCmdHelper.exe -ArgumentList '--shot', "$PWD\baseshots" -Wait
+          Start-Process -FilePath basebin/SteamWorkshopUploader.exe -ArgumentList '--shot', "$PWD\baseshots" -Wait
           Get-ChildItem baseshots
 
       - name: Compare screenshots

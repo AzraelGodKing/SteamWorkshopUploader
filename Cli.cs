@@ -39,7 +39,7 @@ public sealed class CliOptions
 }
 
 /// <summary>
-/// The headless command line: <c>SteamCmdHelper upload &lt;mod&gt;...</c> for scripts and CI. It runs the same mod checks,
+/// The headless command line: <c>SteamWorkshopUploader upload &lt;mod&gt;...</c> for scripts and CI. It runs the same mod checks,
 /// packaging and upload code as the window, and returns an exit code instead of showing dialogs.
 /// </summary>
 public static class Cli
@@ -49,56 +49,56 @@ public static class Cli
     static readonly string[] Commands = { "upload", "list", "version", "update", "download", "verify", "game-builds", "test-install", "ci-setup", "login-secret", "game-version", "note", "history", "doctor", "schedule", "lint", "help" };
 
     public const string Usage = """
-        Modwright command line
+        Steam Workshop Uploader command line
 
         Usage:
-          SteamCmdHelper upload <mod> [<mod>...] [options]   upload these mods (folder or display name)
-          SteamCmdHelper upload --all [options]              upload every ready mod that is on Steam
-          SteamCmdHelper upload --changed [options]          upload every ready mod whose version Steam does not
+          SteamWorkshopUploader upload <mod> [<mod>...] [options]   upload these mods (folder or display name)
+          SteamWorkshopUploader upload --all [options]              upload every ready mod that is on Steam
+          SteamWorkshopUploader upload --changed [options]          upload every ready mod whose version Steam does not
                                                              have yet (skips the ones already up to date)
-          SteamCmdHelper list [--json] [options]             show the mods and whether they are ready
+          SteamWorkshopUploader list [--json] [options]             show the mods and whether they are ready
                                                              (--json: as JSON, for scripts; --markdown: a
                                                              README table; --csv: for a spreadsheet)
-          SteamCmdHelper version <mod> [<mod>...] <new>      set the version to upload: patch, minor, major
+          SteamWorkshopUploader version <mod> [<mod>...] <new>      set the version to upload: patch, minor, major
                 [--note "<text>"]                            or a number such as 1.4.0. --note adds the new
                                                              version's changelog entry where the layout needs one
-          SteamCmdHelper update [--check]                    install the newest release of this program
+          SteamWorkshopUploader update [--check]                    install the newest release of this program
                                                              (--check: only say whether there is one)
-          SteamCmdHelper download <mod|id> --to <folder>     download a Workshop item as subscribers get it,
+          SteamWorkshopUploader download <mod|id> --to <folder>     download a Workshop item as subscribers get it,
                                                              into an empty folder (restores a lost mod)
-          SteamCmdHelper verify <mod> [<mod>...]             download each mod from Steam and compare it with
+          SteamWorkshopUploader verify <mod> [<mod>...]             download each mod from Steam and compare it with
                                                              this PC's last upload of it
-          SteamCmdHelper game-builds                         list the game's Steam branches and builds, and
+          SteamWorkshopUploader game-builds                         list the game's Steam branches and builds, and
                                                              say what changed since the last look
-          SteamCmdHelper test-install --to <folder>          install a second copy of the game, on a beta with
+          SteamWorkshopUploader test-install --to <folder>          install a second copy of the game, on a beta with
                 [--branch <name>] [--beta-password <pw>]     --branch, and put the named mods and the Workshop
                 [<mod>...]                                   items they need into its mods folder
-          SteamCmdHelper ci-setup [--force]                  write a GitHub Actions workflow into the repo that
+          SteamWorkshopUploader ci-setup [--force]                  write a GitHub Actions workflow into the repo that
                                                              uploads changed mods when a v* tag is pushed
-          SteamCmdHelper login-secret                        print SteamCMD's saved login for the workflow's
+          SteamWorkshopUploader login-secret                        print SteamCMD's saved login for the workflow's
                                                              STEAM_CONFIG_VDF secret. Anyone with this text
                                                              can use your Steam login: only paste it there
-          SteamCmdHelper game-version <version> <mod>...     RimWorld: add a game version (such as 1.7) to
+          SteamWorkshopUploader game-version <version> <mod>...     RimWorld: add a game version (such as 1.7) to
                 [--all] [--no-copy]                          supportedVersions; mods with version folders get
                                                              the newest copied to it and a loadFolders.xml
                                                              entry (--no-copy: only About.xml)
-          SteamCmdHelper note <mod>... | --all              print each change note exactly as Steam would get
+          SteamWorkshopUploader note <mod>... | --all              print each change note exactly as Steam would get
                                                              it (template, Markdown, credit line, length)
-          SteamCmdHelper history [<mod>...] [--csv]          this PC's uploads, newest first (--csv: as CSV)
-          SteamCmdHelper doctor [--login]                    check everything an upload needs (folder, layout,
+          SteamWorkshopUploader history [<mod>...] [--csv]          this PC's uploads, newest first (--csv: as CSV)
+          SteamWorkshopUploader doctor [--login]                    check everything an upload needs (folder, layout,
                                                              SteamCMD, login, git, gh, Steam client, disk) and
                                                              say what to fix; --login really logs in
-          SteamCmdHelper schedule --at "<time>" <mod>... | --group <name> | --all | --changed
+          SteamWorkshopUploader schedule --at "<time>" <mod>... | --group <name> | --all | --changed
                                                              upload later through Windows Task Scheduler; the
                                                              time is "2026-10-21 18:00", "18:00", "tomorrow 09:30"
                                                              or "+2h" (also --allow-create, --announce)
-          SteamCmdHelper schedule --list | --cancel <number or mod>
+          SteamWorkshopUploader schedule --list | --cancel <number or mod>
                                                              list or cancel the scheduled uploads
-          SteamCmdHelper lint [<mod>...] [--strict]          check the mods without uploading: what blocks an
+          SteamWorkshopUploader lint [<mod>...] [--strict]          check the mods without uploading: what blocks an
                                                              upload and what is only a warning (RimWorld: the
                                                              About.xml check too). --strict: warnings from
                                                              About.xml block, as Options > Uploading can set
-          SteamCmdHelper help                                show this text
+          SteamWorkshopUploader help                                show this text
 
         Options:
           --repo <folder>        mods repo (default: the one picked in the window)
@@ -317,7 +317,7 @@ public static class Cli
         if (o.Cancel != null)
         {
             var pick = ScheduledUploads.Find(list, o.Cancel);
-            if (pick == null) { say($"Error: no scheduled upload matches \"{o.Cancel}\". See them with: SteamCmdHelper schedule --list"); return ExitUsage; }
+            if (pick == null) { say($"Error: no scheduled upload matches \"{o.Cancel}\". See them with: SteamWorkshopUploader schedule --list"); return ExitUsage; }
             if (await ScheduledUploads.CancelAsync(pick.Name, t, file, ct) is { } error) { say("Error: " + error); return ExitFailed; }
             say($"Cancelled the upload of {pick.What} at {pick.At:yyyy-MM-dd HH:mm}.");
             return ExitOk;
@@ -353,8 +353,8 @@ public static class Cli
     {
         var current = UpdateCheck.CurrentVersion;
         var r = await UpdateCheck.FindNewerAsync(current, ct);
-        if (r == null) { say($"Modwright {current} is the newest version (or GitHub could not be reached)."); return ExitOk; }
-        say($"Modwright {r.Version} is available (you have {current}): {r.PageUrl}");
+        if (r == null) { say($"Steam Workshop Uploader {current} is the newest version (or GitHub could not be reached)."); return ExitOk; }
+        say($"Steam Workshop Uploader {r.Version} is available (you have {current}): {r.PageUrl}");
         if (checkOnly) return ExitOk;
 
         var cannot = AppUpdates.CannotUpdateReason(r);

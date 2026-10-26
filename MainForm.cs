@@ -41,7 +41,7 @@ public sealed partial class MainForm : Form
     readonly CheckBox _ghReleases = new() { AutoSize = true, Text = "Make a GitHub &release for each upload (needs the gh tool, logged in with \"gh auth login\")" };
     Button _profileSave = null!, _profileDelete = null!, _webhookTest = null!;
     readonly CheckBox _tagUploads = new() { AutoSize = true, Text = "&Tag each upload in git as <mod folder>-v<version>" };
-    readonly CheckBox _uploadCredit = new() { AutoSize = true, Text = "End each change note with \"Uploaded via Modwright\" and a link to its download page" };
+    readonly CheckBox _uploadCredit = new() { AutoSize = true, Text = "End each change note with \"Uploaded via Steam Workshop Uploader\" and a link to its download page" };
     readonly CheckBox _markdownNotes = new() { AutoSize = true, Text = "Turn &Markdown in .md changelogs into Steam formatting (headings, bold, lists, links)" };
     readonly TextBox _noteTemplate = new()
     {
@@ -201,7 +201,7 @@ public sealed partial class MainForm : Form
             if (NoStartupPrompts) RefreshNow(); // --shot expects the list filled as soon as the window shows
             else await RefreshAllAsync();
             if (IsDisposed) return;
-            if (UpdatedFrom != null) Append($"Updated Modwright from {UpdatedFrom} to {UpdateCheck.CurrentVersion}.", LogKind.Ok);
+            if (UpdatedFrom != null) Append($"Updated Steam Workshop Uploader from {UpdatedFrom} to {UpdateCheck.CurrentVersion}.", LogKind.Ok);
             if (!NoStartupPrompts) ShowWhatsNewAfterUpdate();
             if (!NoStartupPrompts) _ = StartupCommentsAsync();
             if (!NoStartupPrompts) _ = Task.Run(() => { SelfUpdate.CleanUp(SelfUpdate.AppDir); SelfUpdate.CleanStaging(UpdateCheck.CurrentVersion); }); // what the last update left

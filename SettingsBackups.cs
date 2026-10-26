@@ -7,7 +7,7 @@ public sealed record SettingsBackup(string Path, DateTime Made, long Bytes);
 
 /// <summary>
 /// A copy of the settings and upload history, made once a day when
-/// Modwright starts (the newest 14 are kept), so a bad change or a broken file can be undone from Options > About >
+/// Steam Workshop Uploader starts (the newest 14 are kept), so a bad change or a broken file can be undone from Options > About >
 /// Your data. It holds what an export holds (<see cref="SettingsTransfer"/>), so restoring is an import.
 /// </summary>
 public static class SettingsBackups

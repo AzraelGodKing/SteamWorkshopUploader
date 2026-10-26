@@ -68,6 +68,7 @@ public sealed class SettingsBackupsTests : IDisposable
     public void Backs_up_once_a_day_and_keeps_14()
     {
         Assert.Null(SettingsBackups.MakeIfDue(_data, Dir)); // no settings yet
+        Directory.CreateDirectory(_data);
         File.WriteAllText(Path.Combine(_data, "settings.json"), "{}");
         File.WriteAllText(Path.Combine(_data, "history.json"), "[]");
         var start = new DateTime(2026, 10, 1, 9, 0, 0);
@@ -88,6 +89,7 @@ public sealed class SettingsBackupsTests : IDisposable
     [Fact]
     public void Restoring_puts_the_history_back_and_keeps_the_current_one()
     {
+        Directory.CreateDirectory(_data);
         File.WriteAllText(Path.Combine(_data, "settings.json"), "{}");
         File.WriteAllText(Path.Combine(_data, "history.json"), "old");
         var backup = SettingsBackups.MakeIfDue(_data, Dir, new DateTime(2026, 10, 1))!;

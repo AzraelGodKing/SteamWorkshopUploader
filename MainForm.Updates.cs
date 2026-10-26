@@ -6,7 +6,7 @@ using Microsoft.Win32;
 
 namespace SteamCmdHelper;
 
-/// <summary>Modwright's own updates: checking, downloading and installing them.</summary>
+/// <summary>Steam Workshop Uploader's own updates: checking, downloading and installing them.</summary>
 public sealed partial class MainForm
 {
     /// <summary>
@@ -24,11 +24,11 @@ public sealed partial class MainForm
         if (IsDisposed) return;
         if (r == null)
         {
-            if (manual) MessageBox.Show(this, $"No newer version found. You have Modwright {UpdateCheck.CurrentVersion} (or GitHub could not be reached).", Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (manual) MessageBox.Show(this, $"No newer version found. You have Steam Workshop Uploader {UpdateCheck.CurrentVersion} (or GitHub could not be reached).", Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
         if (!manual && r.Version == _s.SkippedUpdate) return;
-        Append($"Modwright {r.Version} is available (you have {UpdateCheck.CurrentVersion}): {r.PageUrl}", LogKind.Note);
+        Append($"Steam Workshop Uploader {r.Version} is available (you have {UpdateCheck.CurrentVersion}): {r.PageUrl}", LogKind.Note);
 
         var cannot = AppUpdates.CannotUpdateReason(r);
         if (!manual && _s.AutoUpdate && cannot == null)
@@ -49,7 +49,7 @@ public sealed partial class MainForm
         var page = new TaskDialogPage
         {
             Caption = Text,
-            Heading = $"Modwright {r.Version} is available",
+            Heading = $"Steam Workshop Uploader {r.Version} is available",
             Text = $"You have {UpdateCheck.CurrentVersion}. " + (cannot == null
                 ? "Update now downloads it, checks it, and restarts the app."
                 : r.DownloadUrl != null
@@ -80,7 +80,7 @@ public sealed partial class MainForm
         var progress = new TaskDialogPage
         {
             Caption = Text,
-            Heading = $"Downloading Modwright {r.Version}...",
+            Heading = $"Downloading Steam Workshop Uploader {r.Version}...",
             Text = "The download is checked against the release's SHA-256 checksums before anything is changed.",
             ProgressBar = new TaskDialogProgressBar { Minimum = 0, Maximum = 100, Value = 0 },
             Buttons = { cancel },
@@ -93,7 +93,7 @@ public sealed partial class MainForm
         var ready = new TaskDialogPage
         {
             Caption = Text,
-            Heading = $"Modwright {r.Version} is ready",
+            Heading = $"Steam Workshop Uploader {r.Version} is ready",
             Text = _busy ? "An upload is running, so it will be installed when you close the app." : "Restart now to start using it, or it is installed when you close the app.",
             Icon = TaskDialogIcon.ShieldSuccessGreenBar,
             Buttons = { restart, onClose },
@@ -132,10 +132,10 @@ public sealed partial class MainForm
     void ShowUpdateReady()
     {
         if (_pendingUpdate == null) return;
-        _updateReady.Text = $"Modwright {_pendingUpdate.Version} is downloaded and is installed when you close the app. Restart now";
+        _updateReady.Text = $"Steam Workshop Uploader {_pendingUpdate.Version} is downloaded and is installed when you close the app. Restart now";
         _updateReady.LinkArea = new LinkArea(_updateReady.Text.Length - "Restart now".Length, "Restart now".Length);
         _updateReady.Visible = true;
-        Append($"Modwright {_pendingUpdate.Version} is downloaded; it is installed when you close the app (or Options > About > Restart now).", LogKind.Note);
+        Append($"Steam Workshop Uploader {_pendingUpdate.Version} is downloaded; it is installed when you close the app (or Options > About > Restart now).", LogKind.Note);
     }
 
     /// <summary>Installs the downloaded update and starts the new version, unless an upload is running.</summary>

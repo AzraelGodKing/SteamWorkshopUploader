@@ -11,13 +11,13 @@
     <parameter name="version" default-value="0.0.0" />
   </parameters>
   <zip-file>
-    <pe-file path="standalone/SteamCmdHelper.exe" product-name="SteamCMD Helper" product-version="${version}">
+    <pe-file path="standalone/SteamWorkshopUploader.exe" product-name="Steam Workshop Uploader" product-version="${version}">
       <authenticode-sign />
     </pe-file>
-    <pe-file path="portable/SteamCmdHelper.exe" product-name="SteamCMD Helper" product-version="${version}">
+    <pe-file path="portable/SteamWorkshopUploader.exe" product-name="Steam Workshop Uploader" product-version="${version}">
       <authenticode-sign />
     </pe-file>
-    <pe-file path="portable/SteamCmdHelper.dll" product-name="SteamCMD Helper" product-version="${version}">
+    <pe-file path="portable/SteamWorkshopUploader.dll" product-name="Steam Workshop Uploader" product-version="${version}">
       <authenticode-sign />
     </pe-file>
   </zip-file>

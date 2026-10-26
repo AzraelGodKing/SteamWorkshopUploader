@@ -340,7 +340,7 @@ public static class WorkshopExtras
     public static async Task<ExtrasResult> ApplyOnSteamAsync(ExtrasRequest req, CancellationToken ct)
     {
         if (!OperatingSystem.IsWindows()) return ExtrasResult.Fail("This needs the Steam client, which only works on Windows here.");
-        var file = Path.Combine(Path.GetTempPath(), $"steamcmdhelper-extras-{Guid.NewGuid():N}.json");
+        var file = Path.Combine(Path.GetTempPath(), $"steamworkshopuploader-extras-{Guid.NewGuid():N}.json");
         try
         {
             await File.WriteAllTextAsync(file, JsonSerializer.Serialize(req), ct);

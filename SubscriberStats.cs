@@ -7,7 +7,7 @@ public sealed record SubscriberPoint(DateOnly Day, long Subscribers, long Favori
 
 /// <summary>
 /// Remembers each item's subscriber count once a day (from the public details the list already reads), so the row can
-/// show how a mod has grown: this week and since its last upload. Kept in %LocalAppData%\SteamCmdHelper\stats.json.
+/// show how a mod has grown: this week and since its last upload. Kept in %LocalAppData%\SteamWorkshopUploader\stats.json.
 /// </summary>
 public static class SubscriberStats
 {

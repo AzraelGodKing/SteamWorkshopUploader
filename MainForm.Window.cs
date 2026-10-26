@@ -74,7 +74,7 @@ public sealed partial class MainForm
     {
         using var dlg = new SaveFileDialog
         {
-            Title = "Export settings", Filter = "Settings export (*.zip)|*.zip", FileName = $"SteamCmdHelper-settings-{DateTime.Now:yyyy-MM-dd}.zip",
+            Title = "Export settings", Filter = "Settings export (*.zip)|*.zip", FileName = $"SteamWorkshopUploader-settings-{DateTime.Now:yyyy-MM-dd}.zip",
             InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
         };
         if (dlg.ShowDialog(this) != DialogResult.OK) return;
@@ -104,7 +104,7 @@ public sealed partial class MainForm
     {
         if (_busy) return;
         var list = SettingsBackups.List(SettingsBackups.DefaultDir);
-        if (list.Count == 0) { MessageBox.Show(this, "There are no backups yet. One is made each day Modwright starts.", Text, MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
+        if (list.Count == 0) { MessageBox.Show(this, "There are no backups yet. One is made each day Steam Workshop Uploader starts.", Text, MessageBoxButtons.OK, MessageBoxIcon.Information); return; }
         using var w = new ListWindow("Restore a backup", "Pick the day to go back to. Your current settings are kept in a backup folder first, so this can be undone too.",
             new[] { ("Made", 220), ("Size", 100) });
         foreach (var b in list) w.AddRow(b, Tone.Normal, b.Made.ToString("dddd d MMMM yyyy, HH:mm"), PackageCheck.Size(b.Bytes));
@@ -146,7 +146,7 @@ public sealed partial class MainForm
         ShowProfiles();
         ShowAnnounce();
         _ = RefreshAllAsync();
-        MessageBox.Show(this, $"Settings {verb.ToLowerInvariant()}. Restart Modwright so every option shows its new value.", Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
+        MessageBox.Show(this, $"Settings {verb.ToLowerInvariant()}. Restart Steam Workshop Uploader so every option shows its new value.", Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
     /// <summary>The empty mod list says why it is empty and offers the button that fixes it.</summary>

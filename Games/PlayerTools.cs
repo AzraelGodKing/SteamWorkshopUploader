@@ -301,7 +301,7 @@ public static class BugReport
         if (text.Split('\n').Length > 30) lines.Add("...");
         lines.Add("```");
         lines.Add("");
-        lines.Add("(Found with Modwright's Drop Pod log reader.)");
+        lines.Add("(Found with Steam Workshop Uploader's Drop Pod log reader.)");
         return string.Join("\n", lines);
     }
 }

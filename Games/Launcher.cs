@@ -4,7 +4,7 @@ namespace SteamCmdHelper.Games;
 
 /// <summary>
 /// Starting the game the way the Drop Pod does, shared by the Play button, the taskbar jump list and
-/// "SteamCmdHelper.exe --play": the picked instance's folders, its launch options, and its frozen mods linked in for as
+/// "SteamWorkshopUploader.exe --play": the picked instance's folders, its launch options, and its frozen mods linked in for as
 /// long as the game runs.
 /// </summary>
 public static class Launcher

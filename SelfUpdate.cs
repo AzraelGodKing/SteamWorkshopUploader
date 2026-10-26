@@ -29,8 +29,8 @@ public sealed record PreparedUpdate(string Version, InstallKind Kind, string Sta
 public static class SelfUpdate
 {
     public const string OldSuffix = ".update-old";
-    public const string ExeName = "SteamCmdHelper.exe";
-    const string DllName = "SteamCmdHelper.dll";
+    public const string ExeName = "SteamWorkshopUploader.exe";
+    const string DllName = "SteamWorkshopUploader.dll";
     const long MaxDownloadBytes = 400L * 1024 * 1024;
 
     /// <summary>The folder the running program lives in.</summary>
@@ -68,7 +68,7 @@ public static class SelfUpdate
         catch { return false; }
     }
 
-    /// <summary>The file name at the end of a download URL ("…/SteamCmdHelper-1.2.0-win-x64.exe").</summary>
+    /// <summary>The file name at the end of a download URL ("…/SteamWorkshopUploader-1.2.0-win-x64.exe").</summary>
     public static string FileNameOf(string url) => Uri.UnescapeDataString(new Uri(url).Segments[^1]);
 
     /// <summary>Reads a sha256sum listing ("&lt;hex&gt;  &lt;name&gt;" or "&lt;hex&gt; *&lt;name&gt;"), keyed by file name.</summary>
@@ -96,7 +96,7 @@ public static class SelfUpdate
 
     /// <summary>The staging folder used for a version's update.</summary>
     public static string StagingFor(string version, string? tempRoot = null) =>
-        Path.Combine(tempRoot ?? Path.GetTempPath(), "SteamCmdHelper-update", version);
+        Path.Combine(tempRoot ?? Path.GetTempPath(), "SteamWorkshopUploader-update", version);
 
     /// <summary>
     /// Downloads the release's file for <paramref name="kind"/>, checks it against SHA256SUMS.txt, and unpacks it into a
@@ -182,7 +182,7 @@ public static class SelfUpdate
     /// Installs a prepared update over <paramref name="appDir"/>. Every replaced file is kept as "&lt;name&gt;.update-old"
     /// until the next start; if anything fails, the files already swapped are put back and the error is thrown.
     /// <paramref name="exeName"/> is the running exe's file name: a downloaded standalone exe usually keeps its release
-    /// name ("SteamCmdHelper-1.0.0-win-x64.exe"), and replacing that file keeps the user's shortcuts working.
+    /// name ("SteamWorkshopUploader-1.0.0-win-x64.exe"), and replacing that file keeps the user's shortcuts working.
     /// </summary>
     public static void Apply(PreparedUpdate u, string appDir, string exeName = ExeName, bool deleteStaging = true)
     {
@@ -302,7 +302,7 @@ public static class SelfUpdate
         catch (Exception e)
         {
             Log("Failed before anything was replaced: " + e);
-            fail($"Could not install Modwright {version}: {e.Message}\n\nNothing was changed.");
+            fail($"Could not install Steam Workshop Uploader {version}: {e.Message}\n\nNothing was changed.");
             return 1;
         }
         try
@@ -319,7 +319,7 @@ public static class SelfUpdate
             Log("Installed but could not be used, putting the old version back: " + e);
             var back = PutBack(update, appDir, exeName);
             if (back && restart) try { Process.Start(new ProcessStartInfo(target) { UseShellExecute = false, WorkingDirectory = appDir }); } catch { }
-            fail($"Modwright {version} was installed, but Windows would not use it: {e.Message}\n\n" +
+            fail($"Steam Workshop Uploader {version} was installed, but Windows would not use it: {e.Message}\n\n" +
                 (back ? $"Version {fromVersion} was put back." : $"Version {fromVersion} is kept as {exeName}{OldSuffix} in {appDir}; rename it to {exeName} to use it again.") +
                 " If your antivirus quarantined the new version, allow it there, or download it from " + UpdateCheck.ReleasesPage);
             return 1;
@@ -363,7 +363,7 @@ public static class SelfUpdate
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
                 if (DateTime.UtcNow >= until)
-                    throw new TimeoutException($"{Path.GetFileName(file)} is still in use. Close every copy of Modwright and try again.", e);
+                    throw new TimeoutException($"{Path.GetFileName(file)} is still in use. Close every copy of Steam Workshop Uploader and try again.", e);
                 Thread.Sleep(250);
             }
         }
@@ -388,7 +388,7 @@ public static class SelfUpdate
         try
         {
             using var p = Process.GetProcessById(pid);
-            if (!p.WaitForExit(timeout)) throw new TimeoutException("The old copy of Modwright did not close.");
+            if (!p.WaitForExit(timeout)) throw new TimeoutException("The old copy of Steam Workshop Uploader did not close.");
         }
         catch (ArgumentException) { /* already gone */ }
     }

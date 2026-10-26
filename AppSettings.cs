@@ -11,7 +11,7 @@ public sealed class Profile
     public string SteamCmdPath { get; set; } = "";
 }
 
-/// <summary>Saved under %LocalAppData%\SteamCmdHelper\settings.json. Never holds a password.</summary>
+/// <summary>Saved under %LocalAppData%\SteamWorkshopUploader\settings.json. Never holds a password.</summary>
 public sealed class AppSettings
 {
     public string RepoPath { get; set; } = "";
@@ -38,7 +38,7 @@ public sealed class AppSettings
     public List<string> RecentRepos { get; set; } = new();
     /// <summary>After an upload, tag HEAD in git as "&lt;mod folder&gt;-v&lt;version&gt;".</summary>
     public bool TagUploads { get; set; }
-    /// <summary>End each change note sent to Steam with "Uploaded via Modwright" and a link to the newest release.</summary>
+    /// <summary>End each change note sent to Steam with "Uploaded via Steam Workshop Uploader" and a link to the newest release.</summary>
     public bool UploadCredit { get; set; } = true;
     /// <summary>Turn Markdown in .md changelogs into the BBCode Steam's change notes use.</summary>
     public bool MarkdownNotes { get; set; } = true;
@@ -340,7 +340,7 @@ public sealed class AppSettings
     }
 
     /// <summary>
-    /// Where settings, history and the default SteamCMD live: %LocalAppData%\SteamCmdHelper, or in portable mode (a file
+    /// Where settings, history and the default SteamCMD live: %LocalAppData%\SteamWorkshopUploader, or in portable mode (a file
     /// named <see cref="PortableMarker"/> next to the exe) a "data" folder beside the exe, so the whole tool can live on
     /// a USB stick or in a synced folder.
     /// </summary>
@@ -353,7 +353,7 @@ public sealed class AppSettings
 
     static string Dir => Portable
         ? Path.Combine(AppContext.BaseDirectory, "data")
-        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SteamCmdHelper");
+        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SteamWorkshopUploader");
 
     static string FilePath => Path.Combine(Dir, "settings.json");
 
