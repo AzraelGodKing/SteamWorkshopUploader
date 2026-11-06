@@ -4,7 +4,7 @@ namespace SteamCmdHelper;
 
 /// <summary>
 /// Writes down an unexpected error so it can be reported: the program version, Windows and .NET versions, and the full
-/// exception. Reports go to %LocalAppData%\SteamCmdHelper\crashes (the newest <see cref="Keep"/> are kept); nothing is
+/// exception. Reports go to %LocalAppData%\SteamWorkshopUploader\crashes (the newest <see cref="Keep"/> are kept); nothing is
 /// sent anywhere unless the user presses Report it and sends the request form.
 /// </summary>
 public static class CrashReport
@@ -15,7 +15,7 @@ public static class CrashReport
 
     /// <summary>The report text for <paramref name="e"/>.</summary>
     public static string Build(Exception e, string version, DateTime now) =>
-        $"Modwright {version}\n" +
+        $"Steam Workshop Uploader {version}\n" +
         $"Time: {now:yyyy-MM-dd HH:mm:ss zzz}\n" +
         $"Windows: {RuntimeInformation.OSDescription} ({RuntimeInformation.OSArchitecture})\n" +
         $".NET: {RuntimeInformation.FrameworkDescription}\n\n" +

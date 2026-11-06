@@ -109,8 +109,8 @@ public sealed partial class MainForm
         var url = _s.WebhookFor(_s.RepoPath);
         if (url.Length == 0) { MessageBox.Show(this, "Paste the channel's webhook link first.", Text); _webhook.Focus(); return; }
         _webhookTest.Enabled = false;
-        var error = await Announce.PostDiscordAsync(url, Announce.DiscordPayload("Modwright", "test", "0",
-            "This is a test from Modwright. Uploads from this mods folder will be announced here.", _cfg.GameName));
+        var error = await Announce.PostDiscordAsync(url, Announce.DiscordPayload("Steam Workshop Uploader", "test", "0",
+            "This is a test from Steam Workshop Uploader. Uploads from this mods folder will be announced here.", _cfg.GameName));
         _webhookTest.Enabled = true;
         Append(error == null ? "Discord test message sent." : "Discord test failed: " + error, error == null ? LogKind.Ok : LogKind.Error);
     }
@@ -190,7 +190,7 @@ public sealed partial class MainForm
         var ct = _cts.Token;
         if (!wasBusy) SetBusy(true);
         using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(30) };
-        http.DefaultRequestHeaders.UserAgent.ParseAdd("SteamCmdHelper");
+        http.DefaultRequestHeaders.UserAgent.ParseAdd("SteamWorkshopUploader");
         try
         {
             foreach (var m in mods)

@@ -8,8 +8,8 @@ namespace SteamCmdHelper;
 /// </summary>
 static class SingleInstance
 {
-    const string MutexName = @"Local\SteamCmdHelper.Window";
-    const string ActivateName = @"Local\SteamCmdHelper.Activate";
+    const string MutexName = @"Local\SteamWorkshopUploader.Window";
+    const string ActivateName = @"Local\SteamWorkshopUploader.Activate";
     static Mutex? _mutex;
     static EventWaitHandle? _activate;
 

@@ -23,7 +23,7 @@ public sealed class ExtrasRequest
     public List<LanguagePage>? Languages { get; set; }
     /// <summary>Items to count comments on (the Steam client's statistics); null counts nothing. Needs no ownership.</summary>
     public string[]? CountComments { get; set; }
-    /// <summary>Items to unsubscribe the signed-in account from (the Drop Pod's clean-up); null leaves subscriptions alone. Needs no ownership.</summary>
+    /// <summary>Items to unsubscribe the signed-in account from ; null leaves subscriptions alone. Needs no ownership.</summary>
     public string[]? Unsubscribe { get; set; }
     /// <summary>Items to subscribe the signed-in account to, so the Steam client downloads and updates them; null subscribes to nothing.</summary>
     public string[]? Subscribe { get; set; }
@@ -340,7 +340,7 @@ public static class WorkshopExtras
     public static async Task<ExtrasResult> ApplyOnSteamAsync(ExtrasRequest req, CancellationToken ct)
     {
         if (!OperatingSystem.IsWindows()) return ExtrasResult.Fail("This needs the Steam client, which only works on Windows here.");
-        var file = Path.Combine(Path.GetTempPath(), $"steamcmdhelper-extras-{Guid.NewGuid():N}.json");
+        var file = Path.Combine(Path.GetTempPath(), $"steamworkshopuploader-extras-{Guid.NewGuid():N}.json");
         try
         {
             await File.WriteAllTextAsync(file, JsonSerializer.Serialize(req), ct);

@@ -18,7 +18,7 @@ public sealed record ReleaseInfo(string Version, string PageUrl, string? Downloa
 /// </summary>
 public static class UpdateCheck
 {
-    public const string Repo = "AzraelGodKing/SteamCMDHelper";
+    public const string Repo = "AzraelGodKing/SteamWorkshopUploader";
     public const string LatestUrl = "https://api.github.com/repos/" + Repo + "/releases/latest";
     public const string ReleasesPage = "https://github.com/" + Repo + "/releases";
 
@@ -28,7 +28,7 @@ public static class UpdateCheck
     public static HttpClient CreateClient(TimeSpan timeout)
     {
         var c = new HttpClient { Timeout = timeout };
-        c.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SteamCmdHelper", CurrentVersion));
+        c.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SteamWorkshopUploader", CurrentVersion));
         c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
         return c;
     }

@@ -1,13 +1,12 @@
 namespace SteamCmdHelper;
 
 /// <summary>
-/// The app's name in the brand bar as one word with no gap: "Mod" in the title colour and font, "wright" straight after
-/// it in the light brand font and colour. Two labels side by side would leave the padding WinForms puts around label
-/// text between them, so it reads "Mod wright".
+/// The app's name in the brand bar: "Workshop" in the title colour and font, then "Uploader" in the light brand font
+/// and colour. Two labels side by side would leave the padding WinForms puts around label text between them.
 /// </summary>
 sealed class BrandName : Label
 {
-    const string First = "Mod", Second = "wright";
+    const string First = "Workshop ", Second = "Uploader";
     const TextFormatFlags Flags = TextFormatFlags.NoPadding | TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix;
 
     public BrandName()

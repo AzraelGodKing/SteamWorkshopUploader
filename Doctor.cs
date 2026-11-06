@@ -12,7 +12,7 @@ public sealed record SetupCheck(CheckLevel Level, string Name, string Detail)
 }
 
 /// <summary>
-/// "Check setup" (Options > About) and "SteamCmdHelper doctor": goes through everything an upload needs, from the mods
+/// "Check setup" (Options > About) and "SteamWorkshopUploader doctor": goes through everything an upload needs, from the mods
 /// folder to SteamCMD, the saved login, git, gh and the Steam client, and says what to fix. Nothing is changed.
 /// </summary>
 public static class Doctor

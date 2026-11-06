@@ -2,8 +2,8 @@ namespace SteamCmdHelper;
 
 /// <summary>
 /// A plain window around a list: a line of text over it, optional tick boxes, an optional text pane showing the
-/// selected row in full, and buttons that act on the list. The Drop Pod's smaller windows (history, cleanup, update
-/// notes, load times, comparing lists) are all this with different rows.
+/// selected row in full, and buttons that act on the list. The smaller windows (history, the compatibility grid,
+/// backups) are all this with different rows.
 /// </summary>
 public sealed class ListWindow : Form
 {

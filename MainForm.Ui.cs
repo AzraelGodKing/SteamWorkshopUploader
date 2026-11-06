@@ -11,7 +11,7 @@ public sealed partial class MainForm
 {
     void BuildUi()
     {
-        Text = "Modwright - The Launch Pad";
+        Text = "Steam Workshop Uploader";
         Width = 1000; Height = 800; MinimumSize = new Size(840, 640); // at 96 DPI; scaled and fitted to the screen after Theme.Apply
         Font = Theme.BodyFont;
         StartPosition = FormStartPosition.CenterScreen;
@@ -47,10 +47,8 @@ public sealed partial class MainForm
 
         _uploadPage = BuildUploadPage();
         _optionsPage = BuildOptionsPage();
-        _dropPodPage = BuildDropPodPage();
         var pages = new Panel { Dock = DockStyle.Fill };
         pages.Controls.Add(_uploadPage);
-        pages.Controls.Add(_dropPodPage);
         pages.Controls.Add(_optionsPage);
 
         // Fill first, then the top bar, so docking puts the bar above the pages.
@@ -61,7 +59,7 @@ public sealed partial class MainForm
         // Tab starts at the top bar (tabs and ?), then the page, top to bottom.
         header.TabIndex = 0;
         pages.TabIndex = 1;
-        ApplySides();
+        ShowPage(_uploadPage);
 
         Theme.Apply(this);
         // Scaled for the screen's DPI by now; keep the window (and its minimum) on a small or high-DPI screen.
@@ -152,7 +150,7 @@ public sealed partial class MainForm
         var bar = new TableLayoutPanel { Dock = DockStyle.Bottom, AutoSize = true, ColumnCount = 2, RowCount = 1, Padding = new Padding(16, 3, 16, 4) };
         bar.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         bar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        bar.Controls.Add(new Label { Text = "Modwright " + UpdateCheck.CurrentVersion, AutoSize = true, Font = Theme.SmallFont, Anchor = AnchorStyles.Left, Margin = Padding.Empty }.Role(ThemeRole.Muted), 0, 0);
+        bar.Controls.Add(new Label { Text = "Steam Workshop Uploader " + UpdateCheck.CurrentVersion, AutoSize = true, Font = Theme.SmallFont, Anchor = AnchorStyles.Left, Margin = Padding.Empty }.Role(ThemeRole.Muted), 0, 0);
         bar.Controls.Add(new Label { Text = Disclaimer, AutoSize = true, Font = Theme.SmallFont, Anchor = AnchorStyles.Right, Margin = Padding.Empty }.Role(ThemeRole.Muted), 1, 0);
         var footer = new Panel { Dock = DockStyle.Bottom, AutoSize = true };
         footer.Controls.Add(bar);
@@ -164,7 +162,7 @@ public sealed partial class MainForm
     /// The brand bar along the top, dark in both themes: the icon and app name on the left, the Upload / Options tabs
     /// and the "?" button on the right, over a Steam-blue line.
     /// </summary>
-    /// <summary>Under the name: which side of the app is open ("THE LAUNCH PAD" or "THE DROP POD").</summary>
+    /// <summary>Under the name: which part of the app this is ("THE LAUNCH PAD").</summary>
     readonly Label _side = new Label { Text = "THE LAUNCH PAD", AutoSize = true, Margin = new Padding(0, 10, 0, 0), UseMnemonic = false }.Role(ThemeRole.Muted);
 
     Control BuildHeader()
@@ -187,16 +185,12 @@ public sealed partial class MainForm
         bar.Controls.Add(title, 0, 0);
 
         _navUpload = new NavButton { Text = "LA&UNCH PAD", AccessibleName = "The Launch Pad: upload your mods" };
-        _navDropPod = new NavButton { Text = "DROP POD", AccessibleName = "The Drop Pod: your RimWorld mods" };
         _navOptions = new NavButton { Text = "&OPTIONS", AccessibleName = "Options" };
         _navUpload.Click += (_, _) => ShowPage(_uploadPage);
-        _navDropPod.Click += (_, _) => ShowPage(_dropPodPage);
         _navOptions.Click += (_, _) => ShowPage(_optionsPage);
-        _navUpload.Anchor = _navDropPod.Anchor = _navOptions.Anchor = AnchorStyles.Bottom;
+        _navUpload.Anchor = _navOptions.Anchor = AnchorStyles.Bottom;
         Tip(_navUpload, "The Launch Pad: upload and update your own mods on the Steam Workshop");
-        Tip(_navDropPod, "The Drop Pod: the RimWorld mods you play with");
         bar.Controls.Add(_navUpload, 2, 0);
-        bar.Controls.Add(_navDropPod, 3, 0);
         bar.Controls.Add(_navOptions, 4, 0);
 
         var helpMenu = new ContextMenuStrip();
@@ -494,13 +488,13 @@ public sealed partial class MainForm
         // The Upload tab's buttons and boxes. While Options is showing nothing there reads as visible, so the two
         // buttons that come and go are judged by what they are for.
         bool OnUpload(ButtonBase b) => _uploadPage.Visible ? b.Visible : b == _cancel ? _busy : b == _retry ? _retrySet.Count > 0 && !_busy : true;
-        if (HasUploader) AddButtons(_uploadPage, "Upload", OnUpload, b => () =>
+        AddButtons(_uploadPage, "Upload", OnUpload, b => () =>
         {
             ShowPage(_uploadPage);
             if (b is CheckBox x) x.Checked = !x.Checked;
             else if (b is Button btn) btn.PerformClick();
         });
-        if (HasUploader && SelectedMod() is { } sel && _list.ContextMenuStrip is { } rowMenu && !_busy)
+        if (SelectedMod() is { } sel && _list.ContextMenuStrip is { } rowMenu && !_busy)
         {
             _refreshRowMenu();
             // Submenus are walked, and their items are listed with the submenu's name ("Copy: Workshop ID").
@@ -520,7 +514,6 @@ public sealed partial class MainForm
         for (var i = 0; i < _sections.Count; i++)
         {
             var (tab, page) = _sections[i];
-            if (!SectionShown(i)) continue;
             var index = i;
             entries.Add(new PaletteEntry("Options: " + tab.Text, "", "", () => ShowOptionSection(index)));
             AddButtons(page, "Options › " + tab.Text, _ => true, b => () =>
@@ -903,25 +896,18 @@ public sealed partial class MainForm
         _contrastNote = Hint("Windows High Contrast is on, so its colours are used. The theme picked here applies when it is off.");
         foreach (var size in Display.TextSizes) _textSize.Items.Add(size + "%");
         foreach (var t in Display.Themes) _theme.Items.Add(Localizer.T(t.Label));
-        foreach (var c in Display.SidesChoices) _sidesChoice.Items.Add(Localizer.T(c.Label));
-        _sidesChoice.SelectedIndex = Array.FindIndex(Display.SidesChoices, c => c.Name == Display.NormalizeSides(_s.Sides));
-        _sidesChoice.SelectedIndexChanged += (_, _) => { if (_sidesChoice.SelectedIndex >= 0) SetSides(Display.SidesChoices[_sidesChoice.SelectedIndex].Name); };
         Tip(_textSize, "Makes all text, and the layout with it, larger than Windows' own scaling");
         ShowThemeChoice();
-        AddSection("Appearance", "How Modwright looks for your Windows user.",
+        AddSection("Appearance", "How Steam Workshop Uploader looks for your Windows user.",
             Card("Theme and text", null,
                 Row(Lbl("Theme"), _theme),
                 _contrastNote,
                 Row(Lbl("Te&xt size"), _textSize),
                 Hint("The theme changes straight away; Match Windows follows Windows' light or dark app mode. " +
-                     "A new text size is used the next time Modwright starts."),
+                     "A new text size is used the next time Steam Workshop Uploader starts."),
                 Row(_showDetails),
                 Hint("Its preview image, numbers on Steam, change note, description and buttons, on the Launch Pad tab when the window is wide enough " +
                      "for the list's columns too. Drag the bar between the list and the details to resize them.")),
-            Card("The Drop Pod and The Launch Pad", null,
-                Row(Lbl("Sh&ow"), _sidesChoice),
-                Hint("The mod manager (The Drop Pod) is for the RimWorld mods you play with; the uploader (The Launch Pad) puts your own mods on the Steam Workshop. " +
-                     "Only what is picked here is shown, and switching changes nothing else: your settings, mods folder and modlists stay as they are.")),
             Card("Language", null,
                 Row(Lbl("&Language"), _language),
                 Hint("The windows' buttons, labels and menus in another language, from the next start. Log lines and messages stay in English. " +
@@ -949,7 +935,7 @@ public sealed partial class MainForm
         });
         AddSection("About", "Version and updates, where your data is kept, and help.",
             Card("Updates", null,
-                Hint($"Modwright {version}."),
+                Hint($"Steam Workshop Uploader {version}."),
                 Row(_checkUpdates, _checkUpdateNow, Btn("What's new...", (_, _) => ShowAllChanges())),
                 _autoUpdate,
                 _updateReady),
@@ -960,13 +946,13 @@ public sealed partial class MainForm
             Card("Your data", null,
                 Hint(AppSettings.Portable
                     ? $"Portable mode ({AppSettings.PortableMarker} is next to the program): settings, the recent folders list and the upload history are kept in {AppSettings.Folder}, so they travel with it."
-                    : $"Settings, the recent folders list and the upload history are kept in %LocalAppData%\\SteamCmdHelper for your Windows user only. To keep them beside the program instead (on a USB stick, say), put an empty file named {AppSettings.PortableMarker} next to SteamCmdHelper.exe."),
+                    : $"Settings, the recent folders list and the upload history are kept in %LocalAppData%\\SteamWorkshopUploader for your Windows user only. To keep them beside the program instead (on a USB stick, say), put an empty file named {AppSettings.PortableMarker} next to SteamWorkshopUploader.exe."),
                 Row(openData, forget),
                 Row(Btn("E&xport settings...", (_, _) => ExportSettings()), Btn("&Import settings...", (_, _) => ImportSettings()),
                     Btn("Export upload &history...", (_, _) => ExportHistory(UploadHistory.Load(), "upload-history.csv"))),
                 Row(Btn("&Restore a backup...", (_, _) => RestoreSettingsBackup())),
-                Hint($"A backup of the settings, upload history and the Drop Pod's modlists and notes is made once a day when Modwright starts (the newest {SettingsBackups.Keep} are kept)."),
-                Hint("Export saves your settings, profiles, per-folder options (including Discord webhook links, so keep the file private), upload history and the Drop Pod's modlists and notes in one " +
+                Hint($"A backup of the settings and upload history is made once a day when Steam Workshop Uploader starts (the newest {SettingsBackups.Keep} are kept)."),
+                Hint("Export saves your settings, profiles, per-folder options (including Discord webhook links, so keep the file private), and upload history in one " +
                      "zip, to bring to another PC with Import. SteamCMD and its saved Steam login stay behind: log in once on the new PC.")),
             Card("Help", null,
                 Row(Lbl("Everything works from the keyboard.").Role(ThemeRole.Muted), SmallBtn("Keyboard shortcuts (F1)", (_, _) => ShowShortcuts())),
@@ -1020,7 +1006,6 @@ public sealed partial class MainForm
         var index = _sections.Count;
         var tab = new SideNavButton { Text = name, Width = 170, AccessibleName = name };
         tab.Click += (_, _) => ShowSection(index);
-        if (name is "Uploading" or "Workshop page" or "Git & GitHub") _uploaderSections.Add(tab);
         _sections.Add((tab, page));
     }
 
@@ -1030,7 +1015,6 @@ public sealed partial class MainForm
     void ShowSection(int index)
     {
         _section = Math.Clamp(index, 0, _sections.Count - 1);
-        if (!SectionShown(_section)) _section = 0; // the first section, Account, is always shown
         if (_windowRestored && _s.OptionsSection != _section) { _s.OptionsSection = _section; _s.Save(); }
         for (var i = 0; i < _sections.Count; i++)
         {
@@ -1061,69 +1045,16 @@ public sealed partial class MainForm
         _list.Focus();
     }
 
-    /// <summary>Whether the uploader (the Upload tab) is shown; see <see cref="AppSettings.Sides"/>.</summary>
-    bool HasUploader => Display.ShowsUploader(_s.Sides);
-    /// <summary>Whether the mod manager (the Drop Pod tab) is shown.</summary>
-    bool HasDropPod => Display.ShowsDropPod(_s.Sides);
-    /// <summary>The tab the window opens on: Upload, or the Drop Pod when the uploader is not picked.</summary>
-    Control HomePage => HasUploader ? _uploadPage : _dropPodPage;
-
-    bool SectionShown(int index) => HasUploader || !_uploaderSections.Contains(_sections[index].Tab);
-
-    /// <summary>The next Options section that is shown, from <paramref name="from"/> one way or the other.</summary>
-    int NextSection(int from, bool back)
-    {
-        var i = from;
-        do i = (i + (back ? _sections.Count - 1 : 1)) % _sections.Count;
-        while (!SectionShown(i) && i != from);
-        return i;
-    }
-
-    /// <summary>Shows the tabs, Options sections and page for the sides picked.</summary>
-    void ApplySides()
-    {
-        _navUpload.Visible = HasUploader;
-        _navDropPod.Visible = HasDropPod;
-        foreach (var (tab, _) in _sections) tab.Visible = !_uploaderSections.Contains(tab) || HasUploader;
-        if (_optionsPage.Visible) { if (!SectionShown(_section)) ShowSection(0); }
-        else ShowPage(HomePage);
-    }
-
-    /// <summary>Saves which sides to show (one of <see cref="Display.SidesChoices"/>) and switches to it live.</summary>
-    void SetSides(string choice)
-    {
-        if (choice == Display.NormalizeSides(_s.Sides)) return;
-        var hadUploader = HasUploader;
-        _s.Sides = choice;
-        _s.Save();
-        ApplySides();
-        if (HasUploader && !hadUploader) RefreshAll(); // not read while the uploader was off
-        var label = Display.SidesChoices.First(c => c.Name == choice).Label;
-        Append($"Showing: {label}.", LogKind.Note);
-        Say(Localizer.T(label));
-    }
-
-    /// <summary>Which side was shown last (Options aside), kept for the next start in <see cref="AppSettings.OpenOnDropPod"/>.</summary>
-    bool _onDropPod;
+    /// <summary>The next Options section, from <paramref name="from"/> one way or the other.</summary>
+    int NextSection(int from, bool back) => (from + (back ? _sections.Count - 1 : 1)) % _sections.Count;
 
     void ShowPage(Control page)
     {
-        if (page == _uploadPage && !HasUploader || page == _dropPodPage && !HasDropPod) page = HomePage;
         if (page == _optionsPage) SaveFields();
         _uploadPage.Visible = page == _uploadPage;
-        _dropPodPage.Visible = page == _dropPodPage;
         _optionsPage.Visible = page == _optionsPage;
         _navUpload.Selected = page == _uploadPage;
-        _navDropPod.Selected = page == _dropPodPage;
         _navOptions.Selected = page == _optionsPage;
-        if (page != _optionsPage)
-        {
-            var dropPod = page == _dropPodPage;
-            _onDropPod = dropPod;
-            _side.Text = Localizer.T(dropPod ? "THE DROP POD" : "THE LAUNCH PAD");
-            Text = Localizer.T(dropPod ? "Modwright - The Drop Pod" : "Modwright - The Launch Pad");
-        }
-        if (page == _dropPodPage && IsHandleCreated) DropPodShown(); // on opening, read once the window shows (see Shown)
     }
 
     /// <summary>Saves the theme choice (one of <see cref="Display.Themes"/>) and switches to it live.</summary>
@@ -1168,8 +1099,8 @@ public sealed partial class MainForm
         _s.Language = code;
         _s.Save();
         var name = _language.SelectedItem as string ?? code;
-        Append($"Language set to {name}. It is used the next time Modwright starts.", LogKind.Note);
-        Say($"{name} is used the next time Modwright starts.");
+        Append($"Language set to {name}. It is used the next time Steam Workshop Uploader starts.", LogKind.Note);
+        Say($"{name} is used the next time Steam Workshop Uploader starts.");
     }
 
     /// <summary>Writes a translation file with every window text seen so far, filled in from the language picked (or empty for a new one).</summary>
@@ -1198,8 +1129,8 @@ public sealed partial class MainForm
         if (size == Display.NormalizeTextSize(_s.TextSize)) return;
         _s.TextSize = size;
         _s.Save();
-        Append($"Text size set to {size}%. It is used the next time Modwright starts.", LogKind.Note);
-        Say($"Text size {size}% is used the next time Modwright starts.");
+        Append($"Text size set to {size}%. It is used the next time Steam Workshop Uploader starts.", LogKind.Note);
+        Say($"Text size {size}% is used the next time Steam Workshop Uploader starts.");
     }
 
     /// <summary>Colours everything again after the theme changed (a new choice, or Windows changed its mode or contrast).</summary>
@@ -1210,10 +1141,8 @@ public sealed partial class MainForm
         Theme.StyleMenu(_list.ContextMenuStrip!);
         if (_help.Tag is ContextMenuStrip helpMenu) Theme.StyleMenu(helpMenu);
         _navUpload.Selected = _uploadPage.Visible;
-        _navDropPod.Selected = _dropPodPage.Visible;
         _navOptions.Selected = _optionsPage.Visible;
         foreach (var it in _rows) ColorRow(it, (ModInfo)it.Tag!);
-        ColorDropPodRows();
         UpdateDetail();
         SetLogin(_login.Text, _loginTone);
         ShowGame();

@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.0.0
+
+Modwright's uploader becomes its own app: **Steam Workshop Uploader**.
+
+- **Only the uploader.** The Drop Pod (the mod manager for RimWorld and Sun Haven players) is gone, along with its
+  command line (`droppod ...`), the taskbar's Play entries and the first-start choice of sides. Everything for
+  uploading stays, for any game with a Steam Workshop.
+- **RimWorld stays fully supported:** the RimWorld layout, About.xml checks and editor, adding a game version, the XML
+  patch check, clean-colony tests, Play it live, the compatibility grid and reading a player's log. RimWorld is found
+  through Steam, or you pick its folder the first time a tool needs it.
+- **Its own name and place,** so it installs beside Modwright without either touching the other: the program is
+  `SteamWorkshopUploader.exe` (also on the command line), settings live in `%LocalAppData%\SteamWorkshopUploader`,
+  scheduled uploads in Task Scheduler's "Steam Workshop Uploader" folder, and updates come from this repository.
+  Settings from Modwright are not read; Options > About > Import settings takes a Modwright export.
+
 ## 1.17.0
 
 - **A new theme: PlusBacon.** Options > Appearance > Theme now also offers PlusBacon: teal (#069494) on black, with

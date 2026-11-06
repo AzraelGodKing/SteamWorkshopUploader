@@ -22,7 +22,7 @@ public static class Announce
     static HttpClient CreateHttp()
     {
         var c = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
-        c.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SteamCmdHelper", "1"));
+        c.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SteamWorkshopUploader", "1"));
         return c;
     }
 
@@ -36,7 +36,7 @@ public static class Announce
         if (body.Length > 3900) body = body[..3900] + "\n…";
         var payload = new
         {
-            username = "Modwright",
+            username = "Steam Workshop Uploader",
             allowed_mentions = new { parse = Array.Empty<string>() },
             embeds = new[]
             {

@@ -27,8 +27,8 @@ public class SelfUpdateTests : IDisposable
 
     static string Sha(byte[] b) => Convert.ToHexString(SHA256.HashData(b)).ToLowerInvariant();
 
-    const string ExeUrl = "https://example.test/SteamCmdHelper-1.2.0-win-x64.exe";
-    const string ZipUrl = "https://example.test/SteamCmdHelper-1.2.0-win-x64-framework-dependent.zip";
+    const string ExeUrl = "https://example.test/SteamWorkshopUploader-1.2.0-win-x64.exe";
+    const string ZipUrl = "https://example.test/SteamWorkshopUploader-1.2.0-win-x64-framework-dependent.zip";
     const string SumsUrl = "https://example.test/SHA256SUMS.txt";
     static readonly ReleaseInfo Release = new("1.2.0", "https://example.test/page", ExeUrl, ExeUrl, ZipUrl, SumsUrl);
 
@@ -48,7 +48,7 @@ public class SelfUpdateTests : IDisposable
     {
         [ExeUrl] = exe,
         [ZipUrl] = zip,
-        [SumsUrl] = Encoding.UTF8.GetBytes(sums ?? $"{Sha(zip)}  SteamCmdHelper-1.2.0-win-x64-framework-dependent.zip\n{Sha(exe)} *SteamCmdHelper-1.2.0-win-x64.exe\n"),
+        [SumsUrl] = Encoding.UTF8.GetBytes(sums ?? $"{Sha(zip)}  SteamWorkshopUploader-1.2.0-win-x64-framework-dependent.zip\n{Sha(exe)} *SteamWorkshopUploader-1.2.0-win-x64.exe\n"),
     }));
 
     [Fact]
@@ -57,8 +57,8 @@ public class SelfUpdateTests : IDisposable
         var r = UpdateCheck.Parse("""
             { "tag_name": "v1.2.0", "assets": [
               { "name": "SHA256SUMS.txt", "browser_download_url": "https://example.test/SHA256SUMS.txt" },
-              { "name": "SteamCmdHelper-1.2.0-win-x64-framework-dependent.zip", "browser_download_url": "https://example.test/fd.zip" },
-              { "name": "SteamCmdHelper-1.2.0-win-x64.exe", "browser_download_url": "https://example.test/app.exe" } ] }
+              { "name": "SteamWorkshopUploader-1.2.0-win-x64-framework-dependent.zip", "browser_download_url": "https://example.test/fd.zip" },
+              { "name": "SteamWorkshopUploader-1.2.0-win-x64.exe", "browser_download_url": "https://example.test/app.exe" } ] }
             """)!;
 
         Assert.Equal("https://example.test/app.exe", r.ExeUrl);
@@ -81,14 +81,14 @@ public class SelfUpdateTests : IDisposable
     public async Task Standalone_exe_is_downloaded_checked_and_swapped_in_under_the_running_name()
     {
         var exe = Encoding.UTF8.GetBytes("new exe");
-        File.WriteAllText(Path.Combine(App, "SteamCmdHelper-1.0.0-win-x64.exe"), "old exe");
+        File.WriteAllText(Path.Combine(App, "SteamWorkshopUploader-1.0.0-win-x64.exe"), "old exe");
         var reports = new List<int>();
 
         var u = await SelfUpdate.PrepareAsync(Release, InstallKind.SingleFile, new SyncProgress(reports), CancellationToken.None, Web(exe, Zip()), Temp);
-        SelfUpdate.Apply(u, App, "SteamCmdHelper-1.0.0-win-x64.exe");
+        SelfUpdate.Apply(u, App, "SteamWorkshopUploader-1.0.0-win-x64.exe");
 
-        Assert.Equal("new exe", File.ReadAllText(Path.Combine(App, "SteamCmdHelper-1.0.0-win-x64.exe")));
-        Assert.Equal("old exe", File.ReadAllText(Path.Combine(App, "SteamCmdHelper-1.0.0-win-x64.exe" + SelfUpdate.OldSuffix)));
+        Assert.Equal("new exe", File.ReadAllText(Path.Combine(App, "SteamWorkshopUploader-1.0.0-win-x64.exe")));
+        Assert.Equal("old exe", File.ReadAllText(Path.Combine(App, "SteamWorkshopUploader-1.0.0-win-x64.exe" + SelfUpdate.OldSuffix)));
         Assert.False(File.Exists(Path.Combine(App, SelfUpdate.ExeName)));
         Assert.Equal(100, reports[^1]);
         Assert.False(Directory.Exists(u.StagingDir));
@@ -100,15 +100,15 @@ public class SelfUpdateTests : IDisposable
     [Fact]
     public async Task Folder_install_takes_the_zip_and_keeps_its_sub_folders()
     {
-        File.WriteAllText(Path.Combine(App, "SteamCmdHelper.dll"), "old dll");
-        File.WriteAllText(Path.Combine(App, "SteamCmdHelper.exe"), "old exe");
-        var zip = Zip(("SteamCmdHelper.exe", "new exe"), ("SteamCmdHelper.dll", "new dll"), ("de/SteamCmdHelper.resources.dll", "res"));
+        File.WriteAllText(Path.Combine(App, "SteamWorkshopUploader.dll"), "old dll");
+        File.WriteAllText(Path.Combine(App, "SteamWorkshopUploader.exe"), "old exe");
+        var zip = Zip(("SteamWorkshopUploader.exe", "new exe"), ("SteamWorkshopUploader.dll", "new dll"), ("de/SteamCmdHelper.resources.dll", "res"));
         Assert.Equal(InstallKind.Folder, SelfUpdate.KindOf(App));
 
         var u = await SelfUpdate.PrepareAsync(Release, InstallKind.Folder, null, CancellationToken.None, Web(Encoding.UTF8.GetBytes("x"), zip), Temp);
         SelfUpdate.Apply(u, App);
 
-        Assert.Equal("new dll", File.ReadAllText(Path.Combine(App, "SteamCmdHelper.dll")));
+        Assert.Equal("new dll", File.ReadAllText(Path.Combine(App, "SteamWorkshopUploader.dll")));
         Assert.Equal("res", File.ReadAllText(Path.Combine(App, "de", "SteamCmdHelper.resources.dll")));
         Assert.Equal(2, SelfUpdate.CleanUp(App, attempts: 1));
     }
@@ -116,7 +116,7 @@ public class SelfUpdateTests : IDisposable
     [Fact]
     public async Task Download_that_does_not_match_its_checksum_changes_nothing()
     {
-        var web = Web(Encoding.UTF8.GetBytes("tampered"), Zip(), $"{new string('0', 64)}  SteamCmdHelper-1.2.0-win-x64.exe\n");
+        var web = Web(Encoding.UTF8.GetBytes("tampered"), Zip(), $"{new string('0', 64)}  SteamWorkshopUploader-1.2.0-win-x64.exe\n");
 
         var e = await Assert.ThrowsAsync<InvalidDataException>(() =>
             SelfUpdate.PrepareAsync(Release, InstallKind.SingleFile, null, CancellationToken.None, web, Temp));
@@ -145,48 +145,48 @@ public class SelfUpdateTests : IDisposable
     [Fact]
     public void Failed_install_puts_every_replaced_file_back()
     {
-        File.WriteAllText(Path.Combine(App, "SteamCmdHelper.dll"), "old dll");
-        File.WriteAllText(Path.Combine(App, "SteamCmdHelper.exe"), "old exe");
+        File.WriteAllText(Path.Combine(App, "SteamWorkshopUploader.dll"), "old dll");
+        File.WriteAllText(Path.Combine(App, "SteamWorkshopUploader.exe"), "old exe");
         Directory.CreateDirectory(Path.Combine(App, "blocker.txt")); // a folder where the update wants a file
         var staging = Path.Combine(Temp, "stage");
         var files = Path.Combine(staging, "files");
         Directory.CreateDirectory(files);
-        File.WriteAllText(Path.Combine(files, "SteamCmdHelper.dll"), "new dll");
-        File.WriteAllText(Path.Combine(files, "SteamCmdHelper.exe"), "new exe");
+        File.WriteAllText(Path.Combine(files, "SteamWorkshopUploader.dll"), "new dll");
+        File.WriteAllText(Path.Combine(files, "SteamWorkshopUploader.exe"), "new exe");
         File.WriteAllText(Path.Combine(files, "blocker.txt"), "x");
 
         Assert.ThrowsAny<Exception>(() => SelfUpdate.Apply(new PreparedUpdate("1.2.0", InstallKind.Folder, staging), App));
 
-        Assert.Equal("old dll", File.ReadAllText(Path.Combine(App, "SteamCmdHelper.dll")));
-        Assert.Equal("old exe", File.ReadAllText(Path.Combine(App, "SteamCmdHelper.exe")));
+        Assert.Equal("old dll", File.ReadAllText(Path.Combine(App, "SteamWorkshopUploader.dll")));
+        Assert.Equal("old exe", File.ReadAllText(Path.Combine(App, "SteamWorkshopUploader.exe")));
         Assert.Empty(Directory.GetFiles(App, "*" + SelfUpdate.OldSuffix));
     }
 
     [Fact]
     public async Task Installer_waits_out_a_file_that_is_still_in_use()
     {
-        File.WriteAllText(Path.Combine(App, "SteamCmdHelper.exe"), "old exe");
+        File.WriteAllText(Path.Combine(App, "SteamWorkshopUploader.exe"), "old exe");
         var staging = Path.Combine(Temp, "stage");
         var files = Path.Combine(staging, "files");
         Directory.CreateDirectory(files);
-        File.WriteAllText(Path.Combine(files, "SteamCmdHelper.exe"), "new exe");
+        File.WriteAllText(Path.Combine(files, "SteamWorkshopUploader.exe"), "new exe");
         var u = new PreparedUpdate("1.2.0", InstallKind.SingleFile, staging);
 
         // The first attempts fail as if Windows still held the old exe; the installer keeps trying.
-        var blocker = Path.Combine(App, "SteamCmdHelper.exe" + SelfUpdate.OldSuffix);
+        var blocker = Path.Combine(App, "SteamWorkshopUploader.exe" + SelfUpdate.OldSuffix);
         Directory.CreateDirectory(blocker);
         var free = Task.Run(async () => { await Task.Delay(700); Directory.Delete(blocker); });
         SelfUpdate.Install(u, App, attempts: 20);
         await free;
 
-        Assert.Equal("new exe", File.ReadAllText(Path.Combine(App, "SteamCmdHelper.exe")));
+        Assert.Equal("new exe", File.ReadAllText(Path.Combine(App, "SteamWorkshopUploader.exe")));
         Assert.True(Directory.Exists(files), "the installer runs from the staging folder, so it is left for the next start");
     }
 
     [Fact]
     public async Task Installer_waits_until_no_copy_has_the_exe_open()
     {
-        var exe = Path.Combine(App, "SteamCmdHelper.exe");
+        var exe = Path.Combine(App, "SteamWorkshopUploader.exe");
         File.WriteAllText(exe, "old exe");
         var held = new FileStream(exe, FileMode.Open, FileAccess.Read, FileShare.None); // stands in for the running old copy
         var release = Task.Run(async () => { await Task.Delay(600); held.Dispose(); });
@@ -201,7 +201,7 @@ public class SelfUpdateTests : IDisposable
     [Fact]
     public void Installer_gives_up_on_an_exe_that_stays_open()
     {
-        var exe = Path.Combine(App, "SteamCmdHelper.exe");
+        var exe = Path.Combine(App, "SteamWorkshopUploader.exe");
         File.WriteAllText(exe, "old exe");
         using var held = new FileStream(exe, FileMode.Open, FileAccess.Read, FileShare.None);
 
@@ -211,17 +211,17 @@ public class SelfUpdateTests : IDisposable
     [Fact]
     public void A_rejected_install_puts_the_old_exe_back()
     {
-        File.WriteAllText(Path.Combine(App, "SteamCmdHelper-1.2.1-win-x64.exe"), "old exe");
+        File.WriteAllText(Path.Combine(App, "SteamWorkshopUploader-1.2.1-win-x64.exe"), "old exe");
         var staging = Path.Combine(Temp, "stage");
         Directory.CreateDirectory(Path.Combine(staging, "files"));
-        File.WriteAllText(Path.Combine(staging, "files", "SteamCmdHelper.exe"), "new exe");
+        File.WriteAllText(Path.Combine(staging, "files", "SteamWorkshopUploader.exe"), "new exe");
         var u = new PreparedUpdate("1.3.0", InstallKind.SingleFile, staging);
-        SelfUpdate.Install(u, App, "SteamCmdHelper-1.2.1-win-x64.exe");
-        File.Delete(Path.Combine(App, "SteamCmdHelper-1.2.1-win-x64.exe")); // antivirus removed the new copy
+        SelfUpdate.Install(u, App, "SteamWorkshopUploader-1.2.1-win-x64.exe");
+        File.Delete(Path.Combine(App, "SteamWorkshopUploader-1.2.1-win-x64.exe")); // antivirus removed the new copy
 
-        Assert.True(SelfUpdate.PutBack(u, App, "SteamCmdHelper-1.2.1-win-x64.exe"));
+        Assert.True(SelfUpdate.PutBack(u, App, "SteamWorkshopUploader-1.2.1-win-x64.exe"));
 
-        Assert.Equal("old exe", File.ReadAllText(Path.Combine(App, "SteamCmdHelper-1.2.1-win-x64.exe")));
+        Assert.Equal("old exe", File.ReadAllText(Path.Combine(App, "SteamWorkshopUploader-1.2.1-win-x64.exe")));
         Assert.Empty(Directory.GetFiles(App, "*" + SelfUpdate.OldSuffix));
     }
 
@@ -268,7 +268,7 @@ public class SelfUpdateTests : IDisposable
     public void Crash_report_has_the_version_and_the_error_and_old_ones_are_pruned()
     {
         var text = CrashReport.Build(new InvalidOperationException("Boom\nsecond line"), "1.2.3", new DateTime(2026, 10, 15, 12, 0, 0));
-        Assert.Contains("Modwright 1.2.3", text);
+        Assert.Contains("Steam Workshop Uploader 1.2.3", text);
         Assert.Contains("InvalidOperationException: Boom", text);
         Assert.Equal("Crash: InvalidOperationException: Boom", CrashReport.Summary(new InvalidOperationException("Boom\nsecond line")));
 

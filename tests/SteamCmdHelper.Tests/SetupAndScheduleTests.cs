@@ -122,13 +122,13 @@ public sealed class SetupAndScheduleTests : IDisposable
         var args = ScheduledUploads.UploadArgs(@"D:\My Mods\", new[] { "Alpha", "Say \"Hi\"" }, extra: new[] { "--announce" });
         Assert.Equal(@"upload Alpha ""Say \""Hi\"""" --repo ""D:\My Mods\\"" --announce", ScheduledUploads.CommandLine(args));
         Assert.Equal(new[] { "upload", "--group", "Core", "--repo", "D:\\m" }, ScheduledUploads.UploadArgs("D:\\m", Array.Empty<string>(), group: "Core"));
-        Assert.Equal(@"SteamCMD Helper\Upload 2026-10-21 1800 AB", ScheduledUploads.TaskName(new DateTime(2026, 10, 21, 18, 0, 0), "A:B?"));
+        Assert.Equal(@"Steam Workshop Uploader\Upload 2026-10-21 1800 AB", ScheduledUploads.TaskName(new DateTime(2026, 10, 21, 18, 0, 0), "A:B?"));
     }
 
     [Fact]
     public void The_task_runs_once_as_the_user_and_catches_up_when_the_PC_was_off()
     {
-        var xml = ScheduledUploads.TaskXml(@"C:\App\SteamCmdHelper.exe", "upload \"A & B\"", @"D:\mods", new DateTime(2026, 10, 21, 18, 0, 0), "Uploads <A>");
+        var xml = ScheduledUploads.TaskXml(@"C:\App\SteamWorkshopUploader.exe", "upload \"A & B\"", @"D:\mods", new DateTime(2026, 10, 21, 18, 0, 0), "Uploads <A>");
         var doc = System.Xml.Linq.XDocument.Parse(xml);
         var ns = doc.Root!.Name.Namespace;
         Assert.Equal("2026-10-21T18:00:00", doc.Descendants(ns + "StartBoundary").Single().Value);
@@ -155,7 +155,7 @@ public sealed class SetupAndScheduleTests : IDisposable
         Assert.Equal(Cli.ExitOk, code);
         Assert.Contains("Alpha uploads at 2026-10-20 18:00", text);
         var create = Assert.Single(_calls);
-        Assert.Equal(new[] { "/Create", "/TN", @"SteamCMD Helper\Upload 2026-10-20 1800 Alpha" }, create[..3]);
+        Assert.Equal(new[] { "/Create", "/TN", @"Steam Workshop Uploader\Upload 2026-10-20 1800 Alpha" }, create[..3]);
         Assert.False(File.Exists(create[4])); // the XML file is removed after use
 
         (code, text) = await Run("schedule", "--list");

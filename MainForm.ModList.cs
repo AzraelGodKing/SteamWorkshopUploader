@@ -739,7 +739,7 @@ public sealed partial class MainForm
         if (string.IsNullOrWhiteSpace(name)) return;
         _s.SetGroup(_s.RepoPath, name, ticked.Select(m => m.RelPath));
         _s.Save();
-        Append($"Saved the group {name.Trim()}: {string.Join(", ", ticked.Select(m => m.Name))}. From a script: SteamCmdHelper upload --group \"{name.Trim()}\"", LogKind.Ok);
+        Append($"Saved the group {name.Trim()}: {string.Join(", ", ticked.Select(m => m.Name))}. From a script: SteamWorkshopUploader upload --group \"{name.Trim()}\"", LogKind.Ok);
     }
 
     void TickAll(bool on)

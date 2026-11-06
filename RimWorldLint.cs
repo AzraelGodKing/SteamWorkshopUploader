@@ -31,7 +31,7 @@ public static class RimWorldLint
     }
 
     /// <summary>What would block the upload (Problems) and what is only worth a look (Warnings) for one mod.</summary>
-    /// <param name="strict">Treat the About.xml warnings (see <see cref="DropPod.RimWorld.AboutLint"/>) as problems that block the upload.</param>
+    /// <param name="strict">Treat the About.xml warnings (see <see cref="Games.RimWorld.AboutLint"/>) as problems that block the upload.</param>
     public static (List<string> Problems, List<string> Warnings) Check(string modDir, bool strict = false)
     {
         var problems = new List<string>();
@@ -42,10 +42,10 @@ public static class RimWorldLint
         if (about?.Root is not { } meta) return (problems, warnings);
 
         var supported = meta.Element("supportedVersions")?.Elements("li").Select(e => Short(e.Value)).Where(v => v.Length > 0).Distinct().ToList() ?? new();
-        // About.xml itself, read by the parser the Drop Pod uses too.
-        if (DropPod.RimWorld.RimWorldAbout.ReadFolder(modDir, DropPod.ModSource.Local) is { } manifest)
-            foreach (var f in DropPod.RimWorld.AboutLint.Check(manifest))
-                (f.Level == DropPod.RimWorld.LintLevel.Block || strict ? problems : warnings).Add(f.Message);
+        // About.xml itself, read by the same parser the RimWorld tools use.
+        if (Games.RimWorld.RimWorldAbout.ReadFolder(modDir, Games.ModSource.Local) is { } manifest)
+            foreach (var f in Games.RimWorld.AboutLint.Check(manifest))
+                (f.Level == Games.RimWorld.LintLevel.Block || strict ? problems : warnings).Add(f.Message);
 
         var folders = Directory.GetDirectories(modDir).Select(Path.GetFileName).Where(n => VersionFolder.IsMatch(n!)).Select(n => n!).ToList();
         var loadFolders = Path.Combine(modDir, "loadFolders.xml");

@@ -1,5 +1,5 @@
-using SteamCmdHelper.DropPod;
-using SteamCmdHelper.DropPod.RimWorld;
+using SteamCmdHelper.Games;
+using SteamCmdHelper.Games.RimWorld;
 using Xunit;
 
 namespace SteamCmdHelper.Tests;

@@ -42,38 +42,6 @@ static class Program
         return sb.ToString();
     }
 
-    /// <summary>
-    /// A throwaway RimWorld install for the Drop Pod screenshot: base game and a DLC, a Mods folder, a Workshop folder
-    /// next to it, and a player data folder with a ModsConfig.xml. Returns the game and data folders.
-    /// </summary>
-    static (string Game, string Data) DemoRimWorld()
-    {
-        var root = Path.Combine(Path.GetTempPath(), "steamcmd_helper_shot_rimworld");
-        try { Directory.Delete(root, true); } catch { }
-        var game = Path.Combine(root, "steamapps", "common", "RimWorld");
-        var workshop = Path.Combine(root, "steamapps", "workshop", "content", "294100");
-        var data = Path.Combine(root, "UserData");
-        void Mod(string dir, string name, string author, string? id, string versions, string extra = "")
-        {
-            Directory.CreateDirectory(Path.Combine(dir, "About"));
-            File.WriteAllText(Path.Combine(dir, "About", "About.xml"), $"<?xml version=\"1.0\"?><ModMetaData><name>{name}</name><author>{author}</author>"
-                + (id != null ? $"<packageId>{id}</packageId>" : "") + "<supportedVersions>" + string.Concat(versions.Split(',').Select(v => $"<li>{v}</li>")) + $"</supportedVersions>{extra}</ModMetaData>");
-        }
-        Directory.CreateDirectory(game);
-        File.WriteAllText(Path.Combine(game, "Version.txt"), "1.6.4566 rev592");
-        Mod(Path.Combine(game, "Data", "Core"), "Core", "Ludeon Studios", "Ludeon.RimWorld", "1.6");
-        Mod(Path.Combine(game, "Data", "Biotech"), "Biotech", "Ludeon Studios", "Ludeon.RimWorld.Biotech", "1.6");
-        Mod(Path.Combine(game, "Mods", "MyColonyTweaks"), "My Colony Tweaks", "Kat", "Kat.ColonyTweaks", "1.5,1.6");
-        Mod(Path.Combine(workshop, "2009463077"), "Harmony", "Andreas Pardeike", "brrainz.harmony", "1.4,1.5,1.6");
-        Mod(Path.Combine(workshop, "1874644848"), "Better Storage", "Azrael", "Azrael.BetterStorage", "1.5,1.6", "<loadAfter><li>brrainz.harmony</li></loadAfter>");
-        Mod(Path.Combine(workshop, "2016263135"), "Old Hats", "Someone", "Someone.OldHats", "1.3,1.4");
-        Mod(Path.Combine(workshop, "2160293541"), "No Package Id", "Someone Else", null, "1.6");
-        Directory.CreateDirectory(Path.Combine(data, "Config"));
-        File.WriteAllText(Path.Combine(data, "Config", "ModsConfig.xml"), "<?xml version=\"1.0\"?><ModsConfigData><version>1.6.4566 rev592</version><activeMods>"
-            + "<li>ludeon.rimworld</li><li>brrainz.harmony</li><li>ludeon.rimworld.biotech</li><li>azrael.betterstorage</li><li>kat.colonytweaks</li></activeMods></ModsConfigData>");
-        return (game, data);
-    }
-
     /// <summary>A throwaway RimWorld mods folder for the --shot screenshots: one mod per kind of row.</summary>
     static string DemoRepo()
     {
@@ -192,81 +160,6 @@ static class Program
         public override void Flush() { a.Flush(); foreach (var b in more) b?.Flush(); }
     }
 
-    /// <summary>
-    /// Starts RimWorld the way the Drop Pod's Play button does (instance folders, launch options, frozen mods) and waits
-    /// for it to close when frozen mods were linked in, so they come out again. Errors are shown in a message box.
-    /// </summary>
-    static int PlayFromJumpList(string? instance)
-    {
-        var game = new DropPod.RimWorld.RimWorldModule();
-        var s = AppSettings.Load();
-        string? Fail(string why)
-        {
-            ApplicationConfiguration.Initialize();
-            MessageBox.Show(why, "Modwright", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            return null;
-        }
-        s.GameFolders.TryGetValue(game.AppId, out var gameFolder);
-        s.GameDataFolders.TryGetValue(game.AppId, out var dataFolder);
-        var steam = DropPod.SteamLibraries.Find();
-        var usual = game.Detect(steam, gameFolder, dataFolder);
-        if (usual == null) { Fail("RimWorld was not found. Open Modwright's Drop Pod and pick its folder."); return 1; }
-        var inst = string.IsNullOrEmpty(instance) ? null : new DropPod.InstanceStore(Path.Combine(AppSettings.Folder, "droppod", "instances")).Get(game.AppId, instance);
-        if (!string.IsNullOrEmpty(instance) && inst == null) { Fail($"There is no instance called {instance} any more."); return 1; }
-        if (game.ProcessNames.Any(n => { try { return System.Diagnostics.Process.GetProcessesByName(n).Length > 0; } catch { return false; } })) { Fail("RimWorld is already running."); return 1; }
-        var install = inst?.Apply(usual, game, steam) ?? usual;
-        var psi = DropPod.Launcher.StartInfo(game, install, inst, inst?.LaunchArgs ?? s.DropPodLaunchArgs);
-        if (psi == null) { Fail("RimWorld's program was not found in " + install.GameFolder + "."); return 1; }
-        try
-        {
-            var done = new ManualResetEventSlim(false);
-            var frozen = inst != null && DropPod.Freezer.IsFrozen(inst);
-            using var p = DropPod.Launcher.Start(psi, game, install, inst, frozen ? _ => done.Set() : null);
-            if (frozen) done.Wait();
-            return 0;
-        }
-        catch (Exception e) { Fail("Could not start RimWorld: " + e.Message); return 1; }
-    }
-
-    /// <summary>"SteamCmdHelper droppod ...": the Drop Pod from the command line (see <see cref="DropPod.DropPodCli"/>).</summary>
-    static int RunDropPodCommand(string[] args)
-    {
-        var attached = !OutputToFileOrPipe() && AttachConsole(-1);
-        if (attached) Console.Out.WriteLine();
-        var s = AppSettings.Load();
-        // --game picks the game (RimWorld unless The Drop Pod was last set to another); the rest goes to DropPodCli.
-        var g = Array.FindIndex(args, a => a.Equals("--game", StringComparison.OrdinalIgnoreCase));
-        DropPod.IGameModule game = DropPod.DropPodGames.For(s.DropPodGame);
-        if (g >= 0 && g + 1 < args.Length)
-        {
-            var wanted = args[g + 1].Replace(" ", "");
-            game = DropPod.DropPodGames.All.FirstOrDefault(m => m.Name.Replace(" ", "").Equals(wanted, StringComparison.OrdinalIgnoreCase) || m.AppId == wanted) ?? game;
-            args = args.Take(g).Concat(args.Skip(g + 2)).ToArray();
-        }
-        var steam = DropPod.SteamLibraries.Find();
-        s.GameFolders.TryGetValue(game.AppId, out var gameFolder);
-        s.GameDataFolders.TryGetValue(game.AppId, out var dataFolder);
-        var droppod = Path.Combine(AppSettings.Folder, "droppod");
-        var cli = new DropPod.DropPodCli(game, () => game.Detect(steam, gameFolder, dataFolder), (usual, inst) => inst.Apply(usual, game, steam),
-            new DropPod.ModlistStore(Path.Combine(droppod, "modlists")), new DropPod.InstanceStore(Path.Combine(droppod, "instances")),
-            Path.Combine(droppod, "history"), s, s.Save,
-            () => game.ProcessNames.Any(n => { try { return System.Diagnostics.Process.GetProcessesByName(n).Length > 0; } catch { return false; } }),
-            (psi, install, inst) =>
-            {
-                try
-                {
-                    // Frozen mods are linked in while the game runs; wait so they come out again when it closes.
-                    var done = new ManualResetEventSlim(false);
-                    var frozen = inst != null && DropPod.Freezer.IsFrozen(inst);
-                    using var p = DropPod.Launcher.Start(psi, game, install, inst, frozen ? _ => done.Set() : null);
-                    if (frozen) done.Wait();
-                    return 0;
-                }
-                catch (Exception e) { Console.Out.WriteLine($"Error: could not start {game.Name}: " + e.Message); return 1; }
-            });
-        return cli.Run(args, Console.Out);
-    }
-
     [STAThread]
     static int Main(string[] args)
     {
@@ -279,23 +172,18 @@ static class Program
             return SelfUpdate.Finish(args[1..], message =>
             {
                 ApplicationConfiguration.Initialize();
-                MessageBox.Show(message, "Modwright", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(message, "Steam Workshop Uploader", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             });
 
         // Setting one Workshop item's tags through the Steam client, for a window or command line run (see WorkshopTags).
         if (args.Length > 0 && args[0] == WorkshopTags.ChildArg) return SteamworksTags.RunChild(args[1..]);
         if (args.Length > 0 && args[0] == WorkshopExtras.ChildArg) return SteamworksExtras.RunChild(args[1..]);
-        if (args.Length > 0 && args[0] == DropPod.SteamCollections.ChildArg) return SteamworksCollections.RunChild(args[1..]);
 
-        if (args.Length > 0 && args[0].Equals("droppod", StringComparison.OrdinalIgnoreCase)) return RunDropPodCommand(args[1..]);
         if (Cli.IsCommand(args)) return RunCommandLine(args);
 
-        // The taskbar jump list's "Play ..." entries: start RimWorld (normally, or with an instance) without the window.
-        if (args.Length > 0 && args[0] == "--play") return PlayFromJumpList(args.Length > 1 ? args[1] : null);
-
-        // Headless checks used for testing (the real command line is "SteamCmdHelper upload ...", see Cli):
-        //   SteamCmdHelper.exe --selftest <output.txt>                       list what the scanner sees
-        //   SteamCmdHelper.exe --package <ModFolder> <output.txt> [--create] stage a dry-run package, write the .vdf path and file list
+        // Headless checks used for testing (the real command line is "SteamWorkshopUploader upload ...", see Cli):
+        //   SteamWorkshopUploader.exe --selftest <output.txt>                       list what the scanner sees
+        //   SteamWorkshopUploader.exe --package <ModFolder> <output.txt> [--create] stage a dry-run package, write the .vdf path and file list
         var lt = Array.IndexOf(args, "--layouttest");
         if (lt >= 0 && lt + 1 < args.Length) { File.WriteAllText(args[lt + 1], LayoutTest()); return 0; }
 
@@ -370,16 +258,6 @@ static class Program
                 var wideList = new MainForm(theme, new AppSettings { RepoPath = DemoRepo(), Account = "demo_account", AllowCreate = true, DoNotSave = true }) { NoStartupPrompts = true };
                 wideList.Shown += (_, _) => wideList.Size = new Size(Math.Min(1700, screen.Width - 40), Math.Min(1000, screen.Height - 40));
                 Snap(wideList, Path.Combine(args[sh + 1], $"main-details-list{suffix}.png"));
-                // The Drop Pod tab on a demo RimWorld install.
-                var (rwGame, rwData) = DemoRimWorld();
-                var dropPod = new MainForm(theme, new AppSettings { DoNotSave = true, GameFolders = { ["294100"] = rwGame }, GameDataFolders = { ["294100"] = rwData } }) { NoStartupPrompts = true };
-                dropPod.Shown += (_, _) => { dropPod.Size = new Size(Math.Min(1300, screen.Width - 40), Math.Min(800, screen.Height - 40)); dropPod.ShowDropPod(); };
-                Snap(dropPod, Path.Combine(args[sh + 1], $"droppod{suffix}.png"));
-                // The first-start choice of sides, and the window with only the mod manager picked (no Upload tab).
-                Snap(new SidesForm(Display.Both), Path.Combine(args[sh + 1], $"sides{suffix}.png"));
-                var managerOnly = new MainForm(theme, new AppSettings { DoNotSave = true, Sides = Display.Manager, GameFolders = { ["294100"] = rwGame }, GameDataFolders = { ["294100"] = rwData } }) { NoStartupPrompts = true };
-                managerOnly.Shown += (_, _) => managerOnly.Size = new Size(Math.Min(1300, screen.Width - 40), Math.Min(800, screen.Height - 40));
-                Snap(managerOnly, Path.Combine(args[sh + 1], $"main-manager{suffix}.png"));
                 if (theme == Theme.DarkName)
                 {
                     // The newest themes, each once on the Upload tab with mods (each theme gets a shot only while it is new).
@@ -426,8 +304,8 @@ static class Program
                     dry: false, offerCommit: true, warnings: new[] { "Example Mod changed since its clean-colony test on 20 Oct; test it again (right-click > Test in a clean colony)." },
                     checklist: new[] { "Tested in a clean colony", "Updated the preview image" }, mustTick: true), Path.Combine(args[sh + 1], $"confirm{suffix}.png"));
                 // The Launch Pad's About.xml editor (with its live checks) and preview image maker.
-                var about = SteamCmdHelper.DropPod.RimWorld.AboutEditor.Read("<ModMetaData><name>Example Mod</name><author>Kat</author><packageId>Kat.ExampleMod</packageId><supportedVersions><li>1.5</li><li>1.6</li></supportedVersions><modDependencies><li><packageId>brrainz.harmony</packageId><displayName>Harmony</displayName><steamWorkshopUrl>https://steamcommunity.com/sharedfiles/filedetails/?id=2009463077</steamWorkshopUrl></li></modDependencies><loadAfter><li>brrainz.harmony</li></loadAfter></ModMetaData>");
-                Snap(new AboutForm("Example Mod", about, null, () => new List<SteamCmdHelper.DropPod.ModManifest>()), Path.Combine(args[sh + 1], $"about-editor{suffix}.png"));
+                var about = SteamCmdHelper.Games.RimWorld.AboutEditor.Read("<ModMetaData><name>Example Mod</name><author>Kat</author><packageId>Kat.ExampleMod</packageId><supportedVersions><li>1.5</li><li>1.6</li></supportedVersions><modDependencies><li><packageId>brrainz.harmony</packageId><displayName>Harmony</displayName><steamWorkshopUrl>https://steamcommunity.com/sharedfiles/filedetails/?id=2009463077</steamWorkshopUrl></li></modDependencies><loadAfter><li>brrainz.harmony</li></loadAfter></ModMetaData>");
+                Snap(new AboutForm("Example Mod", about, null, () => new List<SteamCmdHelper.Games.ModManifest>()), Path.Combine(args[sh + 1], $"about-editor{suffix}.png"));
                 Snap(new PreviewMakerForm("Example Mod", new Size(640, 360)), Path.Combine(args[sh + 1], $"preview-maker{suffix}.png"));
                 Snap(new PackagePreviewForm(example, new PackageReport(
                     new[] { new PackageFile("About/About.xml", 812), new PackageFile("About/Preview.png", 412_330), new PackageFile("Assemblies/ExampleMod.dll", 48_640), new PackageFile("Textures/Icon.psd", 5_242_880) },
@@ -487,15 +365,6 @@ static class Program
         Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
         Application.ThreadException += (_, e) => ShowCrash(e.Exception, canContinue: true);
         AppDomain.CurrentDomain.UnhandledException += (_, e) => { if (e.ExceptionObject is Exception ex) ShowCrash(ex, canContinue: false); };
-        // The first start asks which sides of the app to show (mod manager, uploader or both); closing it keeps both.
-        var start = AppSettings.Load();
-        if (start.Sides.Length == 0)
-        {
-            Theme.Set(start.Theme);
-            Localizer.Use(start.Language);
-            using (var pick = new SidesForm(Display.Both)) { pick.ShowDialog(); start.Sides = pick.Choice; }
-            start.Save();
-        }
         var form = new MainForm { UpdatedFrom = updatedFrom };
         SingleInstance.Listen(form);
         Application.Run(form);
@@ -521,9 +390,9 @@ static class Program
             var quit = new TaskDialogButton("Close the app");
             var page = new TaskDialogPage
             {
-                Caption = "Modwright",
+                Caption = "Steam Workshop Uploader",
                 Heading = "Something went wrong",
-                Text = "Modwright hit an error it did not expect. " +
+                Text = "Steam Workshop Uploader hit an error it did not expect. " +
                     (canContinue ? "You can keep going, but if anything looks wrong, restart the app. " : "It has to close. ") +
                     "Report it sends the details below as a bug report, after you review them." +
                     (path != null ? $"\n\nSaved to {path}" : ""),

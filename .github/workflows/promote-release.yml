@@ -2,7 +2,7 @@ name: Promote test and release
 
 # Run by hand (Actions > Promote test and release > Run workflow) when test is ready to ship. It:
 #   1. rebases test onto main and runs the tests on the result,
-#   2. fast-forwards main to it and tags main with the version from SteamCmdHelper.csproj, whose "## <version>" section
+#   2. fast-forwards main to it and tags main with the version from SteamWorkshopUploader.csproj, whose "## <version>" section
 #      in CHANGELOG.md becomes the release notes (the tag starts release.yml, which builds and publishes),
 #   3. resets test to the new main.
 # Nothing is bumped here: it releases whatever version test already declares. main, the tag and test are pushed in one
@@ -89,14 +89,14 @@ jobs:
         env:
           EXPECTED: ${{ inputs.version }}
         run: |
-          version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' SteamCmdHelper.csproj | tr -d '\r')
+          version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' SteamWorkshopUploader.csproj | tr -d '\r')
           if [ -z "$version" ]; then
-            echo "::error::No <Version> in SteamCmdHelper.csproj"
+            echo "::error::No <Version> in SteamWorkshopUploader.csproj"
             exit 1
           fi
           expected="${EXPECTED#v}"
           if [ -n "$expected" ] && [ "$expected" != "$version" ]; then
-            echo "::error::You asked for $expected, but SteamCmdHelper.csproj on test says $version"
+            echo "::error::You asked for $expected, but SteamWorkshopUploader.csproj on test says $version"
             exit 1
           fi
           if git rev-parse -q --verify "refs/tags/v$version" > /dev/null || git ls-remote --exit-code --tags origin "refs/tags/v$version" > /dev/null; then
@@ -111,7 +111,7 @@ jobs:
             on { print }
           ' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
           if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/notes.md"; then
-            echo "::error::SteamCmdHelper.csproj says $version, but CHANGELOG.md has no '## $version' section"
+            echo "::error::SteamWorkshopUploader.csproj says $version, but CHANGELOG.md has no '## $version' section"
             exit 1
           fi
           echo "VERSION=$version" >> "$GITHUB_ENV"

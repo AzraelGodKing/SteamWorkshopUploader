@@ -7,7 +7,7 @@ namespace SteamCmdHelper;
 
 /// <summary>
 /// Applies an <see cref="ExtrasRequest"/> through the Steam client, in a child process started by
-/// <see cref="WorkshopExtras.ApplyOnSteamAsync"/> ("SteamCmdHelper.exe --steam-page-extras request.json"). Like the
+/// <see cref="WorkshopExtras.ApplyOnSteamAsync"/> ("SteamWorkshopUploader.exe --steam-page-extras request.json"). Like the
 /// tag update, the process tells Steam it is the game. Facepunch.Steamworks keeps Steam's required-items and gallery
 /// calls to itself, so they are reached through its internal ISteamUGC wrapper.
 /// </summary>
@@ -66,7 +66,7 @@ static class SteamworksExtras
                     result.Subscribed.Add(a);
                     item.Download(highPriority: true);
                 }
-            // The Steam client downloads in the background; wait a while so the Drop Pod can tick them straight away.
+            // The Steam client downloads in the background; wait a while so they are there to use straight away.
             var until = DateTime.UtcNow.AddSeconds(req.WaitSeconds);
             while (true)
             {

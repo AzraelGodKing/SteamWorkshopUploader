@@ -52,7 +52,7 @@ public sealed record PackageDiff(PackageManifest Last, IReadOnlyList<string> Add
 }
 
 /// <summary>
-/// Remembers what each upload sent (one file per Workshop item in %LocalAppData%\SteamCmdHelper\manifests) and compares
+/// Remembers what each upload sent (one file per Workshop item in %LocalAppData%\SteamWorkshopUploader\manifests) and compares
 /// the next package with it.
 /// </summary>
 public static class PackageDiffs
